@@ -1,0 +1,4 @@
+services:
+    biberltd.phporient:
+        class:        BiberLtd\Bundle\PhpOrientBundle\Services\PhpOrient
+        arguments:    ["%orientdb.default.hostname"%, "%orientdb.default.port%", "%orientdb.default.token%"]
