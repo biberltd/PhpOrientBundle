@@ -6,12 +6,11 @@
  * @name	    PhpOrientWrapper
  *
  * @author		Can Berkol
- * @author		Said İmamoğlu
  *
  * @copyright   Biber Ltd. www.biberltd.com (C) 2015
  *
- * @version     1.0.0
- * @date        01.06.2015
+ * @version     1.0.1
+ * @date        03.06.2015
  *
  */
 namespace BiberLtd\Bundle\PhpOrientBundle\Services;
@@ -21,25 +20,25 @@ use \PhpOrient\Protocols\Binary\Data as OrientData;
 use \PhpOrient\Protocols\Common\Constants as OrientConstants;
 
 class PhpOrient{
-    public $driver;
+	public $driver;
 
-    /**
-     * @name            __construct()
-     *
+	/**
+	 * @name            __construct()
 	 *
-     * @since           1.0.0
-     * @version         1.0.0
 	 *
-     * @author          Can Berkol
+	 * @since           1.0.0
+	 * @version         1.0.0
+	 *
+	 * @author          Can Berkol
 	 *
 	 * @param			string		$hostname
 	 * @param			string		$port
 	 * @param			string|bool	$token
-     *
-     */
-    public function __construct($hostname = '', $port = '', $token = ''){
-        $this->driver = new Orient\PhpOrient($hostname, $port, $token);
-    }
+	 *
+	 */
+	public function __construct($hostname = '', $port = '', $token = ''){
+		$this->driver = new Orient\PhpOrient($hostname, $port, $token);
+	}
 	/**
 	 * @name            command()
 	 *
@@ -69,7 +68,7 @@ class PhpOrient{
 	 *
 	 * @return 			mixed
 	 */
-	public function connect($username = '', $password = '', $serializationType = OrientConstants\Constants::SERIALIZATION_DOCUMENT2CSV){
+	public function connect($username = '', $password = '', $serializationType = OrientConstants::SERIALIZATION_DOCUMENT2CSV){
 		return $this->driver->connect($username, $password, $serializationType);
 	}
 	/**
@@ -85,7 +84,7 @@ class PhpOrient{
 	 *
 	 * @return 			integer
 	 */
-	public function dataClusterAdd($clusterName, $clusterType = OrientConstants\Constants::CLUSTER_TYPE_PHYSICAL){
+	public function dataClusterAdd($clusterName, $clusterType = OrientConstants::CLUSTER_TYPE_PHYSICAL){
 		return $this->driver->dataClusterAdd($clusterName, $clusterType);
 	}
 	/**
@@ -173,7 +172,7 @@ class PhpOrient{
 	 *
 	 * @return 			bool
 	 */
-	public function dbCreate($database, $storageType = OrientConstants\Constants::STORAGE_TYPE_PLOCAL, $databaseType = OrientConstants\Constants::DATABASE_TYPE_GRAPH){
+	public function dbCreate($database, $storageType = OrientConstants::STORAGE_TYPE_PLOCAL, $databaseType = OrientConstants::DATABASE_TYPE_GRAPH){
 		return $this->driver->dbCreate($database, $storageType, $databaseType);
 	}
 	/**
@@ -189,7 +188,7 @@ class PhpOrient{
 	 *
 	 * @return 			true
 	 */
-	public function dbDrop($database, $storageType = OrientConstants\Constants::STORAGE_TYPE_PLOCAL){
+	public function dbDrop($database, $storageType = OrientConstants::STORAGE_TYPE_PLOCAL){
 		return $this->driver->dbDrop($database, $storageType);
 	}
 	/**
@@ -205,7 +204,7 @@ class PhpOrient{
 	 *
 	 * @return 			bool
 	 */
-	public function dbExists($database, $databaseType = OrientConstants\Constants::DATABASE_TYPE_GRAPH){
+	public function dbExists($database, $databaseType = OrientConstants::DATABASE_TYPE_GRAPH){
 		return $this->driver->dbExists($database, $databaseType);
 	}
 	/**
@@ -221,7 +220,7 @@ class PhpOrient{
 	 *
 	 * @return 			bool
 	 */
-	public function dbFreeze($dbName, $storageType = OrientConstants\Constants::STORAGE_TYPE_PLOCAL){
+	public function dbFreeze($dbName, $storageType = OrientConstants::STORAGE_TYPE_PLOCAL){
 		return $this->driver->dbFreeze($dbName, $storageType);
 	}
 	/**
@@ -268,7 +267,7 @@ class PhpOrient{
 	 *
 	 * @return 			true
 	 */
-	public function dbRelease($dbName, $storageType = OrientConstants\Constants::STORAGE_TYPE_PLOCAL){
+	public function dbRelease($dbName, $storageType = OrientConstants::STORAGE_TYPE_PLOCAL){
 		return $this->driver->dbRelease($dbName, $storageType);
 	}
 	/**
@@ -371,6 +370,51 @@ class PhpOrient{
 		return $this->driver->getTransactionStatement();
 	}
 	/**
+	 * @name            setHostname()
+	 *
+	 * @since           1.0.1
+	 * @version         1.0.1
+	 *
+	 * @author          Can Berkol
+	 *
+	 * @param			string		$hostname
+	 *
+	 * @return 			Orient\PhoOrient
+	 */
+	public function setHostname($hostname){
+		return $this->driver->hostname = $hostname;
+	}
+	/**
+	 * @name            setPassword()
+	 *
+	 * @since           1.0.1
+	 * @version         1.0.1
+	 *
+	 * @author          Can Berkol
+	 *
+	 * @param			string		$password
+	 *
+	 * @return 			Orient\PhoOrient
+	 */
+	public function setPassword($password){
+		return $this->driver->password = $password;
+	}
+	/**
+	 * @name            setPort()
+	 *
+	 * @since           1.0.1
+	 * @version         1.0.1
+	 *
+	 * @author          Can Berkol
+	 *
+	 * @param			integer		$port
+	 *
+	 * @return 			Orient\PhoOrient
+	 */
+	public function setPort($port){
+		return $this->driver->port = $port;
+	}
+	/**
 	 * @name            setTransport()
 	 *
 	 * @since           1.0.0
@@ -386,6 +430,21 @@ class PhpOrient{
 		return $this->driver->setTransport($transport);
 	}
 	/**
+	 * @name            setUserName()
+	 *
+	 * @since           1.0.1
+	 * @version         1.0.1
+	 *
+	 * @author          Can Berkol
+	 *
+	 * @param			string		$username
+	 *
+	 * @return 			Orient\PhoOrient
+	 */
+	public function setUserName($username){
+		return $this->driver->username = $username;
+	}
+	/**
 	 * @name            shutDown()
 	 *
 	 * @since           1.0.0
@@ -397,7 +456,7 @@ class PhpOrient{
 	 * @param			string		$password
 	 */
 	public function shutDown($username, $password){
-		return $this->driver->shutDown($username, $password);
+		$this->driver->shutDown($username, $password);
 	}
 
 	/**
@@ -514,6 +573,16 @@ class PhpOrient{
 
 /**
  * Change Log
+ * **************************************
+ * v1.0.1                      03.06.2015
+ * Can Berkol
+ * **************************************
+ * BF :: Namespace issues fixed.
+ * FR :: setHostname() method added.
+ * FR :: setPassword() method added.
+ * FR :: setPort() method added.
+ * FR :: setUsername() method added.
+ *
  * **************************************
  * v1.0.0                      01.06.2015
  * Can Berkol
