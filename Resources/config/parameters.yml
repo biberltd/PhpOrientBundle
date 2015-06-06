@@ -1,6 +1,4 @@
 parameters:
-    orientdb:
-      default:
-        hostname: "localhost"
-        port: 2480
-        token: false
+    orientdb.default.hostname: "localhost"
+    orientdb.default.port: 2480
+    orientdb.default.token: false
