@@ -9,8 +9,8 @@
  *
  * @copyright   Biber Ltd. www.biberltd.com (C) 2015
  *
- * @version     1.0.1
- * @date        03.06.2015
+ * @version     1.0.2
+ * @date        11.06.2015
  *
  */
 namespace BiberLtd\Bundle\PhpOrientBundle\Services;
@@ -463,7 +463,7 @@ class PhpOrient{
 	 * @name            sqlBatch()
 	 *
 	 * @since           1.0.0
-	 * @version         1.0.0
+	 * @version         1.0.2
 	 *
 	 * @author          Can Berkol
 	 *
@@ -472,7 +472,7 @@ class PhpOrient{
 	 * @return 			mixed
 	 */
 	public function sqlBatch($param){
-		return $this->driver->batch($param);
+		return $this->driver->sqlBatch($param);
 	}
 	/**
 	 * @name            query()
@@ -573,6 +573,12 @@ class PhpOrient{
 
 /**
  * Change Log
+ * **************************************
+ * v1.0.1                      11.06.2015
+ * Can Berkol
+ * **************************************
+ * BF :: sqlBatch() method was calling batch() instead of sqlBatch(). Fixed.
+ *
  * **************************************
  * v1.0.1                      03.06.2015
  * Can Berkol
