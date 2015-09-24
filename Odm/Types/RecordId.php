@@ -2,7 +2,7 @@
 /**
  * @package     bodev-core-bundles/php-orient-bundle
  * @subpackage  Odm/Types
- * @name        String
+ * @name        RecordId
  *
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
@@ -15,23 +15,24 @@
 namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Types;
 
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException;
+use PhpOrient\Protocols\Binary\Data\ID as ID;
 
-class String extends BaseType{
+class RecordId extends BaseType{
 
-	/** @var string $value */
+	/** @var  $value integer */
 	protected $value;
 
 	/**
-	 * @param string $value
+	 * @param ID $value
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function __construct($value){
-		parent::__construct('String', $value);
+		parent::__construct('RecordId', $value);
 	}
 
 	/**
-	 * @return string
+	 * @return int
 	 */
 	public function getValue(){
 		return $this->value;
@@ -56,7 +57,7 @@ class String extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
-		if(!is_string($value)){
+		if(!$value instanceof ID){
 			throw new InvalidValueException($this);
 		}
 		return true;

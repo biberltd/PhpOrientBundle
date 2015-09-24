@@ -7,7 +7,7 @@
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
  *
- * @copyright   bodev-core-bundles (C) 2015
+ * @copyright   Biber Ltd. (C) 2015
  *
  * @version     1.0.0
  */
@@ -91,13 +91,13 @@ class OrientCollection extends BaseType{
 	}
 
 	/**
-	 * @param integer                                              $currentIdx
-	 * @param \BiberLtd\Bundle\PhpOrientBundle\Odm\Types\bool|true $circular
+	 * @param integer       $currentIdx
+	 * @param bool          $circular
 	 *
 	 * @return mixed
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidIndexException
 	 */
-	public function getNextValue($currentIdx, bool $circular = true){
+	public function getNextValue($currentIdx, $circular = true){
 		if (!isset($this->value[$currentIdx])){
 			throw new InvalidIndexException($currentIdx);
 		}
@@ -112,13 +112,13 @@ class OrientCollection extends BaseType{
 	}
 
 	/**
-	 * @param integer                                              $currentIdx
-	 * @param \BiberLtd\Bundle\PhpOrientBundle\Odm\Types\bool|true $circular
+	 * @param integer       $currentIdx
+	 * @param bool          $circular
 	 *
 	 * @return mixed
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidIndexException
 	 */
-	public function getPreviousValue($currentIdx, bool $circular = true){
+	public function getPreviousValue($currentIdx, $circular = true){
 		if (!isset($this->value[$currentIdx])){
 			throw new InvalidIndexException($currentIdx);
 		}

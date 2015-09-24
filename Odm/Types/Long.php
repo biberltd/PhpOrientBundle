@@ -7,7 +7,7 @@
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
  *
- * @copyright   bodev-core-bundles (C) 2015
+ * @copyright   Biber Ltd. (C) 2015
  *
  * @version     1.0.0
  */
@@ -16,7 +16,7 @@ namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Types;
 
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException;
 
-class Long extends Float{
+class Long extends Integer{
 
 	/** @var float $value */
 	protected $value;
@@ -27,6 +27,6 @@ class Long extends Float{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function __construct($value){
-		parent::__construct('Long', $value);
+		parent::__construct($value);
 	}
 }

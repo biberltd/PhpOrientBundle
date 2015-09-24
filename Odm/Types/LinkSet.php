@@ -7,7 +7,7 @@
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
  *
- * @copyright   bodev-core-bundles (C) 2015
+ * @copyright   Biber Ltd. (C) 2015
  *
  * @version     1.0.0
  */

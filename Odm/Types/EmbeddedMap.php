@@ -7,7 +7,7 @@
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
  *
- * @copyright   bodev-core-bundles (C) 2015
+ * @copyright   Biber Ltd. (C) 2015
  *
  * @version     1.0.0
  */
@@ -16,17 +16,15 @@ namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Types;
 
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException;
 
-class EmbeddedMap extends OrientCollection{
+class EmbeddedMap extends BaseType{
 
 	/** @var array $value */
 	protected $value;
 
 	/**
-	 * @param array $value
-	 *
-	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
+	 * @param object $value
 	 */
-	public function __construct(array $value = array()){
+	public function __construct($value = null){
 		parent::__construct('EmbeddedMap', $value);
 	}
 
@@ -56,11 +54,11 @@ class EmbeddedMap extends OrientCollection{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
-		if(!is_array($value)){
+		if(!is_object($value)){
 			throw new InvalidValueException($this);
 		}
 		foreach($value as $key => $item){
-			if(!$item instanceof ORecord || !is_string($key)){
+			if(!is_string($item) || !is_string($key)){
 				throw new InvalidValueException($this);
 			}
 		}

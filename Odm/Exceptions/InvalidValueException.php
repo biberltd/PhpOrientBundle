@@ -7,7 +7,7 @@
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
  *
- * @copyright   bodev-core-bundles (C) 2015
+ * @copyright   Biber Ltd. (C) 2015
  *
  * @version     1.0.0
  */
@@ -19,11 +19,11 @@ class InvalidValueException extends \Exception{
 	/**
 	 * @param \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\object|null $type Type of value.
 	 */
-	public function __construct(object $type = null){
+	public function __construct($type = null){
 		$this->message = 'An invalid value provided.';
 
 		if(!is_null($type)){
-			$this->message .= ' The value must be a type of '.get_class();
+			$this->message .= ' The value must be a type of '.get_class($type);
 		}
 	}
 }

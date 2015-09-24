@@ -7,7 +7,7 @@
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
  *
- * @copyright   bodev-core-bundles (C) 2015
+ * @copyright   Biber Ltd. (C) 2015
  *
  * @version     1.0.0
  */
@@ -28,13 +28,15 @@ abstract class BaseType{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct($name, $value){
+	public function __construct($name, $value = null){
 		$this->name = $name;
 
-		if($this->validateValue($value)){
-			throw new InvalidValueException($this);
+		if(!is_null($value)){
+			if(!$this->validateValue($value)){
+				throw new InvalidValueException($this);
+			}
+			$this->value = $value;
 		}
-		$this->value = $value;
 	}
 	/**
 	 * Gets the stored value.

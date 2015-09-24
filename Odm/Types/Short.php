@@ -7,7 +7,7 @@
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
  *
- * @copyright   bodev-core-bundles (C) 2015
+ * @copyright   Biber Ltd. (C) 2015
  *
  * @version     1.0.0
  */
@@ -16,7 +16,7 @@ namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Types;
 
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException;
 
-class Short extends Float{
+class Short extends Integer{
 
 	/** @var float $value */
 	protected $value;
@@ -27,6 +27,6 @@ class Short extends Float{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function __construct($value){
-		parent::__construct('Short', $value);
+		parent::__construct($value);
 	}
 }

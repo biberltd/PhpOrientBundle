@@ -7,7 +7,7 @@
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
  *
- * @copyright   bodev-core-bundles (C) 2015
+ * @copyright   Biber Ltd. (C) 2015
  *
  * @version     1.0.0
  */
@@ -56,6 +56,9 @@ class Integer extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
+		if(is_numeric($value)){
+			$value = (int) $value;
+		}
 		if(!is_integer($value)){
 			throw new InvalidValueException($this);
 		}
