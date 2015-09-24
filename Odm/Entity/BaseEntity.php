@@ -2,7 +2,7 @@
 /**
  * @package     bodev-core-bundles/php-orient-bundle
  * @subpackage  Odm/Entity
- * @name
+ * @name        BaseEntity
  *
  * @author      Biber Ltd. (www.biberltd.com)
  * @author      Can Berkol
@@ -243,5 +243,12 @@ class BaseEntity{
 		}
 
 		return xmlrpc_encode($objRepresentation);
+	}
+
+	/**
+	 * @return array
+	 */
+	final public function getProps(){
+		return $this->props;
 	}
 }
