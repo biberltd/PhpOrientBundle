@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @vendor      BiberLtd
  * @package		Core\Bundles\PhpOrientBundle
@@ -15,30 +16,50 @@
  */
 namespace BiberLtd\Bundle\PhpOrientBundle\Services;
 
+use Symfony\Component\DependencyInjection\ContainerInterface as Container;
 use \PhpOrient as Orient;
 use \PhpOrient\Protocols\Binary\Data as OrientData;
 use \PhpOrient\Protocols\Common\Constants as OrientConstants;
 
-class PhpOrient{
+class PhpOrient
+{
+	/**
+	 * @var Orient\PhpOrient
+	 */
 	public $driver;
 
 	/**
-	 * @name            __construct()
+	 * @var array
+	 */
+	protected $orientParams;
+
+	/**
+	 * @param Container $container
+	 * @param $hostname
+	 * @param $port
+	 * @param $token
 	 *
 	 *
 	 * @since           1.0.0
-	 * @version         1.0.0
+	 * @version         1.0.1
 	 *
-	 * @author          Can Berkol
-	 *
-	 * @param			string		$hostname
-	 * @param			string		$port
-	 * @param			string|bool	$token
-	 *
+	 * @author			Can Berkol
+	 * @author			Ali Cavdar
 	 */
-	public function __construct($hostname = '', $port = '', $token = ''){
+	public function __construct(Container $container, $hostname, $port, $token)
+	{
+		$this->orientParams = $container->getParameter('orientdb');
+
+		$hostname = isset($this->orientParams['hostname']) ? $this->orientParams['hostname'] : $hostname;
+		$port = isset($this->orientParams['port']) ? $this->orientParams['port'] : $port;
+		$token = isset($this->orientParams['token']) ? $this->orientParams['token'] : $token;
+
+		// auto connection by parameters.yml
 		$this->driver = new Orient\PhpOrient($hostname, $port, $token);
+		$this->driver->username = $this->orientParams['root']['username'];
+		$this->driver->password = $this->orientParams['root']['password'];
 	}
+
 	/**
 	 * @name            command()
 	 *
@@ -51,9 +72,11 @@ class PhpOrient{
 	 *
 	 * @return 			mixed
 	 */
-	public function command($query){
+	public function command($query)
+	{
 		return $this->driver->command($query);
 	}
+
 	/**
 	 * @name            connect()
 	 *
@@ -61,16 +84,17 @@ class PhpOrient{
 	 * @version         1.0.0
 	 *
 	 * @author          Can Berkol
+	 * @author			Ali Cavdar
 	 *
-	 * @param			string		$username
-	 * @param			string		$password
 	 * @param			string		$serializationType
 	 *
 	 * @return 			mixed
 	 */
-	public function connect($username = '', $password = '', $serializationType = OrientConstants::SERIALIZATION_DOCUMENT2CSV){
-		return $this->driver->connect($username, $password, $serializationType);
+	public function connect($serializationType = OrientConstants::SERIALIZATION_DOCUMENT2CSV)
+	{
+		return $this->driver->connect($this->driver->username, $this->driver->password, $serializationType);
 	}
+
 	/**
 	 * @name            dataClusterAdd()
 	 *
@@ -87,6 +111,7 @@ class PhpOrient{
 	public function dataClusterAdd($clusterName, $clusterType = OrientConstants::CLUSTER_TYPE_PHYSICAL){
 		return $this->driver->dataClusterAdd($clusterName, $clusterType);
 	}
+
 	/**
 	 * @name            dataClusterCount()
 	 *
@@ -102,6 +127,7 @@ class PhpOrient{
 	public function dataClusterCount(array $clusterIds = array()){
 		return $this->driver->dataClusterCount($clusterIds);
 	}
+
 	/**
 	 * @name            dataClusterDataRange()
 	 *
@@ -117,6 +143,7 @@ class PhpOrient{
 	public function dataClusterDataRange($clusterId){
 		return $this->driver->dataClusterDataRange($clusterId);
 	}
+
 	/**
 	 * @name            dataClusterDrop()
 	 *
@@ -132,6 +159,7 @@ class PhpOrient{
 	public function dataClusterDrop($clusterId){
 		return $this->driver->dataClusterDrop($clusterId);
 	}
+
 	/**
 	 * @name            dbClose()
 	 *
@@ -145,6 +173,7 @@ class PhpOrient{
 	public function dbClose(){
 		return $this->driver->dbClose();
 	}
+
 	/**
 	 * @name            dbCountRecords()
 	 *
@@ -158,6 +187,7 @@ class PhpOrient{
 	public function dbCountRecords(){
 		return $this->driver->dbCountRecords();
 	}
+
 	/**
 	 * @name            dbCreate()
 	 *
@@ -175,6 +205,7 @@ class PhpOrient{
 	public function dbCreate($database, $storageType = OrientConstants::STORAGE_TYPE_PLOCAL, $databaseType = OrientConstants::DATABASE_TYPE_GRAPH){
 		return $this->driver->dbCreate($database, $storageType, $databaseType);
 	}
+
 	/**
 	 * @name            dbDrop()
 	 *
@@ -191,6 +222,7 @@ class PhpOrient{
 	public function dbDrop($database, $storageType = OrientConstants::STORAGE_TYPE_PLOCAL){
 		return $this->driver->dbDrop($database, $storageType);
 	}
+
 	/**
 	 * @name            dbExists()
 	 *
@@ -207,6 +239,7 @@ class PhpOrient{
 	public function dbExists($database, $databaseType = OrientConstants::DATABASE_TYPE_GRAPH){
 		return $this->driver->dbExists($database, $databaseType);
 	}
+
 	/**
 	 * @name            dbFreeze()
 	 *
@@ -223,6 +256,7 @@ class PhpOrient{
 	public function dbFreeze($dbName, $storageType = OrientConstants::STORAGE_TYPE_PLOCAL){
 		return $this->driver->dbFreeze($dbName, $storageType);
 	}
+
 	/**
 	 * @name            dbList()
 	 *
@@ -236,24 +270,30 @@ class PhpOrient{
 	public function dbList(){
 		return $this->driver->dbList();
 	}
+
 	/**
 	 * @name            dbOpen()
 	 *
 	 * @since           1.0.0
-	 * @version         1.0.0
+	 * @version         1.0.1
 	 *
 	 * @author          Can Berkol
+	 * @author			Ali Cavdar
 	 *
 	 * @param			string		$database
-	 * @param			string		$username
-	 * @param			string		$password
 	 * @param			array		$params
 	 *
 	 * @return 			Orient\Protocols\Common\ClusterMap
 	 */
-	public function dbOpen($database, $username = '', $password = '', array $params = array()){
+	public function dbOpen($database, array $params = array())
+	{
+		$databaseCredentials = $this->orientParams['database'][$database];
+		$username = $databaseCredentials['username'];
+		$password = $databaseCredentials['password'];
+
 		return $this->driver->dbOpen($database, $username, $password, $params);
 	}
+
 	/**
 	 * @name            dbRelease()
 	 *
@@ -270,6 +310,7 @@ class PhpOrient{
 	public function dbRelease($dbName, $storageType = OrientConstants::STORAGE_TYPE_PLOCAL){
 		return $this->driver->dbRelease($dbName, $storageType);
 	}
+
 	/**
 	 * @name            dbReload()
 	 *
@@ -283,6 +324,7 @@ class PhpOrient{
 	public function dbReload(){
 		return $this->driver->dbReload();
 	}
+
 	/**
 	 * @name            dbSize()
 	 *
@@ -309,9 +351,11 @@ class PhpOrient{
 	 *
 	 * @return 			mixed
 	 */
+
 	public function execute($operation, array $params = array()){
 		return $this->driver->execute($operation, $params);
 	}
+
 	/**
 	 * @name            getNewInstance()
 	 *
@@ -330,6 +374,7 @@ class PhpOrient{
 		$this->driver = new Orient\PhpOrient($hostname, $port, $token);
 		return $this->driver;
 	}
+
 	/**
 	 * @name            getSessionToken()
 	 *
@@ -343,6 +388,7 @@ class PhpOrient{
 	public function getSessionToken(){
 		return $this->driver->getessionToken();
 	}
+
 	/**
 	 * @name            getTransport()
 	 *
@@ -356,6 +402,7 @@ class PhpOrient{
 	public function getTransport(){
 		return $this->driver->getTransport();
 	}
+
 	/**
 	 * @name            getTransactionStatement()
 	 *
@@ -369,6 +416,7 @@ class PhpOrient{
 	public function getTransactionStatement(){
 		return $this->driver->getTransactionStatement();
 	}
+
 	/**
 	 * @name            setHostname()
 	 *
@@ -384,6 +432,7 @@ class PhpOrient{
 	public function setHostname($hostname){
 		return $this->driver->hostname = $hostname;
 	}
+
 	/**
 	 * @name            setPassword()
 	 *
@@ -399,6 +448,7 @@ class PhpOrient{
 	public function setPassword($password){
 		return $this->driver->password = $password;
 	}
+
 	/**
 	 * @name            setPort()
 	 *
@@ -414,6 +464,7 @@ class PhpOrient{
 	public function setPort($port){
 		return $this->driver->port = $port;
 	}
+
 	/**
 	 * @name            setTransport()
 	 *
@@ -429,6 +480,7 @@ class PhpOrient{
 	public function setTransport(Orient\Protocols\Common\TransportInterface $transport){
 		return $this->driver->setTransport($transport);
 	}
+
 	/**
 	 * @name            setUserName()
 	 *
@@ -444,6 +496,7 @@ class PhpOrient{
 	public function setUserName($username){
 		return $this->driver->username = $username;
 	}
+
 	/**
 	 * @name            shutDown()
 	 *
@@ -474,6 +527,7 @@ class PhpOrient{
 	public function sqlBatch($param){
 		return $this->driver->sqlBatch($param);
 	}
+
 	/**
 	 * @name            query()
 	 *
@@ -508,6 +562,7 @@ class PhpOrient{
 	public function queryAsync($query, array $params = array()){
 		return $this->driver->queryAsync($query, $params);
 	}
+
 	/**
 	 * @name            recordCreate()
 	 *
@@ -523,6 +578,7 @@ class PhpOrient{
 	public function recordCreate(OrientData\Record $record){
 		return $this->driver->recordCreate($record);
 	}
+
 	/**
 	 * @name            recordDelete()
 	 *
@@ -538,6 +594,7 @@ class PhpOrient{
 	public function recordDelete(OrientData\Id $rid){
 		return $this->driver->recordDelete($rid);
 	}
+
 	/**
 	 * @name            recordLoad()
 	 *
@@ -554,6 +611,7 @@ class PhpOrient{
 	public function recordLoad(OrientData\Id $rid, array $params = array()){
 		return $this->driver->recordLoad($rid, $params);
 	}
+
 	/**
 	 * @name            recordUpdate()
 	 *
