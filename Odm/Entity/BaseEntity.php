@@ -9,7 +9,7 @@
  *
  * @copyright   Biber Ltd. (C) 2015
  *
- * @version     1.0.0
+ * @version     1.0.1
  */
 
 namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Entity;
@@ -58,6 +58,7 @@ class BaseEntity{
 			$this->dateAdded = new \DateTime('now', new \DateTimeZone($timezone));
 			$this->record = $record;
 			$this->dateUpdate = $this->dateAdded;
+			$this->setDefaults();
 		}
 		else{
 			$this->convertRecordToOdmObject($record);
@@ -250,5 +251,17 @@ class BaseEntity{
 	 */
 	final public function getProps(){
 		return $this->props;
+	}
+
+	/**
+	 * @return $this
+	 */
+	private function setDefaults(){
+		$nsRoot = 'BiberLtd\\Bundle\\PhpOrientBundle\\Odm\\Types\\';
+		foreach($this->props as $aProperty){
+			$propName = new $aProperty->getName();
+			$this->$propName = new $nsRoot.$aProperty->getType();
+		}
+		return $this;
 	}
 }
