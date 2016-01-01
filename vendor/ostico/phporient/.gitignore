@@ -1,0 +1,10 @@
+/ci/environment
+coverage
+vendor
+log
+.idea
+*.phar
+*.zip
+localTestingArea
+composer.phar
+composer.lock

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @vendor      BiberLtd
  * @package		Core\Bundles\PhpOrientBundle
