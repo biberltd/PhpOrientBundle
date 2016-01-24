@@ -169,7 +169,7 @@ Properties
 
 #### $items
 ```php
-    protected array $items = array()
+    protected array $items = []
 ```
  
 

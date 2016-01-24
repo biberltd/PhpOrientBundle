@@ -37,7 +37,7 @@ abstract class Operation implements ConfigurableInterface {
      *
      * @var array
      */
-    protected $_writeStack = array();
+    protected $_writeStack = [];
 
     /**
      * @var string of read stream

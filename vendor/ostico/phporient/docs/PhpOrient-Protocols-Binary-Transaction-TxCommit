@@ -84,7 +84,7 @@ Properties
 
 #### $_operation_stack
 ```php
-    protected array $_operation_stack = array()
+    protected array $_operation_stack = []
 ```
  List of operation to execute
 
@@ -95,7 +95,7 @@ Properties
 
 #### $_pre_operation_records
 ```php
-    protected array $_pre_operation_records = array()
+    protected array $_pre_operation_records = []
 ```
  Records backup before the transaction execution
 
@@ -106,7 +106,7 @@ Properties
 
 #### $_operation_records
 ```php
-    protected array $_operation_records = array()
+    protected array $_operation_records = []
 ```
  Records after the transaction
 
@@ -139,7 +139,7 @@ Properties
 
 #### $_writeStack
 ```php
-    protected array $_writeStack = array()
+    protected array $_writeStack = []
 ```
  Stack of elements to compile
 

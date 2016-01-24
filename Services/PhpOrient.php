@@ -123,7 +123,7 @@ class PhpOrient
 	 *
 	 * @return 			array
 	 */
-	public function dataClusterCount(array $clusterIds = array()){
+	public function dataClusterCount(array $clusterIds = []){
 		return $this->driver->dataClusterCount($clusterIds);
 	}
 
@@ -284,7 +284,7 @@ class PhpOrient
 	 *
 	 * @return 			Orient\Protocols\Common\ClusterMap
 	 */
-	public function dbOpen($database, array $params = array())
+	public function dbOpen($database, array $params = [])
 	{
 		$databaseCredentials = $this->orientParams['database'][$database];
 		$username = $databaseCredentials['username'];
@@ -351,7 +351,7 @@ class PhpOrient
 	 * @return 			mixed
 	 */
 
-	public function execute($operation, array $params = array()){
+	public function execute($operation, array $params = []){
 		return $this->driver->execute($operation, $params);
 	}
 
@@ -558,7 +558,7 @@ class PhpOrient
 	 *
 	 * @return			mixed
 	 */
-	public function queryAsync($query, array $params = array()){
+	public function queryAsync($query, array $params = []){
 		return $this->driver->queryAsync($query, $params);
 	}
 
@@ -607,7 +607,7 @@ class PhpOrient
 	 *
 	 * @return			OrientData\recordLoad|OrientData\Record
 	 */
-	public function recordLoad(OrientData\Id $rid, array $params = array()){
+	public function recordLoad(OrientData\Id $rid, array $params = []){
 		return $this->driver->recordLoad($rid, $params);
 	}
 

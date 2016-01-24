@@ -143,13 +143,13 @@ class ClusterMap implements ConfigurableInterface, \ArrayAccess, \Countable, \It
      *
      * @return $this|void
      */
-    public function configure( Array $options = array() ) {
+    public function configure( Array $options = [] ) {
 
         $this->config( $options );
         $this->_parseRelease();
         if ( !empty( $this->dataClusters ) ) {
-            $this->reverseMap = array();
-            $this->reverseIDMap = array();
+            $this->reverseMap = [];
+            $this->reverseIDMap = [];
             foreach ( $this->dataClusters as $pos => $value ) {
                 $this->reverseMap[ $value[ 'name' ] ] = [ $pos, $value[ 'id' ] ];
                 $this->reverseIDMap[ $value[ 'id' ] ] = [ $pos, $value[ 'name' ] ];

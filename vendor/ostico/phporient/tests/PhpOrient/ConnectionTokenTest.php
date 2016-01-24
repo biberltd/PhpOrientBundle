@@ -156,7 +156,7 @@ class ConnectionTokenTest extends EmptyTestCase {
 
     public function testWrongTokenWithNoInitialization(){
 
-//        print_r( new \DateTime() );
+//        print_r( new \Datemicrotime(true) );
 
         $client = new PhpOrient( 'localhost', 2424 );
         $client->setSessionToken( true );  // set true to enable the token based authentication

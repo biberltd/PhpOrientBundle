@@ -40,13 +40,13 @@ class BaseEntity{
 	/** @var  string $version md5 Hash of object serialization */
 	protected $versionHash;
 	/** @var array Version history, the first element is always the original version */
-	protected $versionHistory = array();
+	protected $versionHistory = [];
 	/** @var \PhpOrient\Protocols\Binary\Data\Record Stores the original Orient Record  */
 	protected $record;
 	/** @var array Holds definition of all public properties of a class for serialization purposes. */
-	private $props = array();
+	private $props = [];
 	/** @var array Holds annotation definitions. */
-	private $propAnnotations = array();
+	private $propAnnotations = [];
 
 	/**
 	 * @param \PhpOrient\Protocols\Binary\Data\Record|null $record

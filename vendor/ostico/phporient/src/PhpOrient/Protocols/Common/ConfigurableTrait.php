@@ -10,7 +10,7 @@ trait ConfigurableTrait {
      *
      * @return $this The current object, configured.
      */
-    public function configure( Array $options = array() ) {
+    public function configure( Array $options = [] ) {
 
         foreach ( $options as $key => $value ) {
             $methodName = 'set' . ucfirst( $key );
@@ -33,7 +33,7 @@ trait ConfigurableTrait {
      *
      * @return static The configured object.
      */
-    public static function fromConfig( Array $options = array() ) {
+    public static function fromConfig( Array $options = [] ) {
         $className = get_called_class();
         $object    = new $className();
 

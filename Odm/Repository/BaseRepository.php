@@ -36,7 +36,7 @@ abstract class BaseRepository implements RepositoryInterface{
 	 * @return array
 	 */
 	public final function insert(array $collection){
-		$resultSet = array();
+		$resultSet = [];
 		foreach($collection as $anEntity){
 			$query = $this->prepareInsertQuery($anEntity);
 			$resultSet[] = $this->oService->command($query);

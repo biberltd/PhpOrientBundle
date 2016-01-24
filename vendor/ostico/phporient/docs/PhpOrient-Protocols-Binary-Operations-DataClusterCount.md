@@ -31,7 +31,7 @@ Properties
 
 #### $ids
 ```php
-    public array<mixed,integer> $ids = array()
+    public array<mixed,integer> $ids = []
 ```
  
 
@@ -64,7 +64,7 @@ Properties
 
 #### $_writeStack
 ```php
-    protected array $_writeStack = array()
+    protected array $_writeStack = []
 ```
  Stack of elements to compile
 

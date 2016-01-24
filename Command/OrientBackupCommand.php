@@ -47,7 +47,7 @@ class OrientBackupCommand extends ContainerAwareCommand
         $orientDatabases = $orientService->dbList();
 
         // Backup date
-        $backupDate = new \DateTime();
+        $backupDate = new \Datemicrotime(true);
         $backupDate = $backupDate->format('d-m-Y');
 
         // Prepare output name

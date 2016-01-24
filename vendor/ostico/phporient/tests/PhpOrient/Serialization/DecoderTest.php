@@ -34,7 +34,7 @@ class DecoderTest extends EmptyTestCase {
         $this->assertEquals( [ 'foo' => new ID( 12, 10 ) ], $result );
     }
 
-    public function testDeserializeArray() {
+    public function testDeserialize[] {
         $result = CSV::unserialize( 'foo:[1, 2, #12:10]' );
         $this->assertEquals( [ 'foo' => [ 1, 2, new ID( 12, 10 ) ] ], $result );
     }

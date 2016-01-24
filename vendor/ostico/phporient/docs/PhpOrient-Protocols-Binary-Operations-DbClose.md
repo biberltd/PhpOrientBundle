@@ -42,7 +42,7 @@ Properties
 
 #### $_writeStack
 ```php
-    protected array $_writeStack = array()
+    protected array $_writeStack = []
 ```
  Stack of elements to compile
 

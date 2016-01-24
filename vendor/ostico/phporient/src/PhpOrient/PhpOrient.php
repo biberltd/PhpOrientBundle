@@ -204,7 +204,7 @@ class PhpOrient implements ConfigurableInterface {
      *
      * @return mixed The result of the operation.
      */
-    public function execute( $operation, Array $params = array() ) {
+    public function execute( $operation, Array $params = [] ) {
         return $this->getTransport()->execute( $operation, $params );
     }
 
@@ -298,7 +298,7 @@ class PhpOrient implements ConfigurableInterface {
      *
      * @return mixed
      */
-    public function queryAsync( $query, Array $params = array() ) {
+    public function queryAsync( $query, Array $params = [] ) {
         $params[ 'command' ]    = Constants::QUERY_ASYNC;
         $params[ 'query' ]      = $query;
 
@@ -374,7 +374,7 @@ class PhpOrient implements ConfigurableInterface {
      *
      * @return RecordLoad/Record
      */
-    public function recordLoad( ID $rid, Array $params = array()  ) {
+    public function recordLoad( ID $rid, Array $params = []  ) {
         $params[ 'rid' ]      = $rid;
         return $this->getTransport()->execute( 'recordLoad', $params );
     }
@@ -576,7 +576,7 @@ class PhpOrient implements ConfigurableInterface {
      *
      * @return int|string numeric
      */
-    public function dataClusterCount( Array $cluster_ids = array() ) {
+    public function dataClusterCount( Array $cluster_ids = [] ) {
         return $this->getTransport()->execute( 'dataClusterCount', [ 'ids' => $cluster_ids ] );
     }
 

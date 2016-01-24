@@ -148,7 +148,7 @@ class SocketTransport extends AbstractTransport {
      *
      * @return mixed The result of the operation.
      */
-    public function execute( $operation, array $params = array() ) {
+    public function execute( $operation, array $params = [] ) {
 
         $op = $this->operationFactory( $operation, $params );
         $result = $op->prepare()->send()->getResponse();

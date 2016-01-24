@@ -27,7 +27,7 @@ class OLinkMap extends OrientCollection{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct(array $value = array()){
+	public function __construct(array $value = []){
 		parent::__construct('LinkMap', $value);
 	}
 
