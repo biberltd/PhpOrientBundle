@@ -2,13 +2,13 @@
 
 [![Build Status](https://travis-ci.org/Ostico/PhpOrient.svg?branch=master)](https://travis-ci.org/Ostico/PhpOrient) [![Coverage Status](https://coveralls.io/repos/Ostico/PhpOrient/badge.svg?branch=master)](https://coveralls.io/r/Ostico/PhpOrient)
 
-A PHP driver good enough for OrientDB that uses binary protocol.
+PHPOrient is a php driver based on the binary protocol of OrientDB.
 
-> **status: RC**
+> **status: Stable**
 > Please [report any bugs](https://github.com/Ostico/PhpOrient/issues) you find so that we can improve the library for everyone.
 
 #### Requires
-- PHP Version >= 5.4
+- PHP Version >= 5.4 ( Socket extension enabled )
 - Orientdb version 1.7.4 or later.
 
 ##### PhpOrient works even on 32bit and 64bit platforms.
@@ -16,6 +16,7 @@ A PHP driver good enough for OrientDB that uses binary protocol.
 ###### Warning, if you use a 32bit platform, you must use one of these libraries into YOUR application to avoid the loss of significant digits with Java long integers. Furthermore, these php modules should be loaded to achieve better driver performances on these systems.
 - [BCMath Arbitrary Precision Mathematics](http://php.net/manual/en/refs.math.php) (Faster, recommended)
 - [GNU Multiple Precision](http://php.net/manual/en/book.gmp.php)
+###### In PhpOrient, by design, numbers are always treated as strings because of the platform dependant nature of PHP. In 32bit platform numbers must be treated as string because values greater than 2^32 would be lost and the BCMath/GMP modules must be used to avoid this. To make the results consistent for all platforms ( 32 and 64bit ) and leave to the user/developer the decision on how to use it's own data ( by manual cast ) strings are used for all numeric data types.
 
 ## Installation
 

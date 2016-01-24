@@ -12,7 +12,7 @@ use PhpOrient\Protocols\Binary\Operations\RecordCreate;
 use PhpOrient\Protocols\Binary\Operations\RecordDelete;
 use PhpOrient\Protocols\Binary\Operations\RecordLoad;
 use PhpOrient\Protocols\Binary\Operations\RecordUpdate;
-use PhpOrient\Protocols\Common\ClusterMap;
+use PhpOrient\Protocols\Common\ClustersMap;
 use PhpOrient\Protocols\Common\ConfigurableInterface;
 use PhpOrient\Protocols\Common\ConfigurableTrait;
 use PhpOrient\Protocols\Common\Constants;
@@ -74,6 +74,11 @@ class PhpOrient implements ConfigurableInterface {
     protected $_transport;
 
     /**
+     * @var bool|string
+     */
+    protected static $fetchClass = null;
+
+    /**
      * Class Constructor
      *
      * @param string $hostname The server host.
@@ -83,6 +88,7 @@ class PhpOrient implements ConfigurableInterface {
      */
     public function __construct( $hostname = '', $port = '', $token = '' ) {
         if ( !empty( $hostname ) ) {
+            if( $hostname == 'localhost' ) $hostname = '127.0.0.1';
             $this->hostname = $hostname;
         }
 
@@ -204,8 +210,10 @@ class PhpOrient implements ConfigurableInterface {
      *
      * @return mixed The result of the operation.
      */
-    public function execute( $operation, Array $params = [] ) {
-        return $this->getTransport()->execute( $operation, $params );
+    public function execute( $operation, Array $params = array() ) {
+        $result = $this->getTransport()->execute( $operation, $params );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -263,7 +271,9 @@ class PhpOrient implements ConfigurableInterface {
         $params[ 'command' ] = Constants::QUERY_CMD;
         $params[ 'query' ]   = $query;
 
-        return $this->getTransport()->execute( 'command', $params );
+        $result = $this->getTransport()->execute( 'command', $params );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -284,7 +294,9 @@ class PhpOrient implements ConfigurableInterface {
         $params[ 'limit' ]      = ( !stripos( $query, ' limit ' ) ? $limit : -1 );
         $params[ 'fetch_plan' ] = $fetchPlan;
 
-        return $this->getTransport()->execute( 'command', $params );
+        $result = $this->getTransport()->execute( 'command', $params );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -298,11 +310,13 @@ class PhpOrient implements ConfigurableInterface {
      *
      * @return mixed
      */
-    public function queryAsync( $query, Array $params = [] ) {
+    public function queryAsync( $query, Array $params = array() ) {
         $params[ 'command' ]    = Constants::QUERY_ASYNC;
         $params[ 'query' ]      = $query;
 
-        return $this->getTransport()->execute( 'command', $params );
+        $result = $this->getTransport()->execute( 'command', $params );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -319,7 +333,9 @@ class PhpOrient implements ConfigurableInterface {
         $params[ 'command' ] = Constants::QUERY_SCRIPT;
         $params[ 'query' ]   = $param;
 
-        return $this->getTransport()->execute( 'command', $params );
+        $result = $this->getTransport()->execute( 'command', $params );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -330,13 +346,15 @@ class PhpOrient implements ConfigurableInterface {
      * @return RecordUpdate|Record
      */
     public function recordUpdate( Record $record ) {
-        return $this->getTransport()->execute( 'recordUpdate',
+        $result = $this->getTransport()->execute( 'recordUpdate',
             [
                 'rid'              => $record->getRid(),
                 'record'           => $record,
                 'record_version'   => $record->getVersion()
             ]
         );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -347,10 +365,12 @@ class PhpOrient implements ConfigurableInterface {
      * @return RecordCreate|Record
      */
     public function recordCreate(  Record $record ) {
-        return $this->getTransport()->execute( 'recordCreate', [
+        $result = $this->getTransport()->execute( 'recordCreate', [
             'cluster_id' => $record->getRid()->cluster,
             'record'     => $record
         ] );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -361,9 +381,11 @@ class PhpOrient implements ConfigurableInterface {
      * @return RecordDelete|bool
      */
     public function recordDelete( ID $rid ) {
-        return $this->getTransport()->execute( 'recordDelete', [
+        $result = $this->getTransport()->execute( 'recordDelete', [
             'rid'    => $rid
         ] );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -374,9 +396,11 @@ class PhpOrient implements ConfigurableInterface {
      *
      * @return RecordLoad/Record
      */
-    public function recordLoad( ID $rid, Array $params = []  ) {
+    public function recordLoad( ID $rid, Array $params = array()  ) {
         $params[ 'rid' ]      = $rid;
-        return $this->getTransport()->execute( 'recordLoad', $params );
+        $result = $this->getTransport()->execute( 'recordLoad', $params );
+        $this->setFetchClass(false);
+        return $result;
     }
 
     /**
@@ -391,7 +415,7 @@ class PhpOrient implements ConfigurableInterface {
     /**
      * Reload the structure of a Database
      *
-     * @return ClusterMap
+     * @return ClustersMap
      */
     public function dbReload() {
         return $this->getTransport()->execute( 'dbReload', [] );
@@ -423,7 +447,8 @@ class PhpOrient implements ConfigurableInterface {
      *    'serializationType' => PhpOrient::SERIALIZATION_DOCUMENT2CSV,
      *    'databaseType'      => PhpOrient::DATABASE_TYPE_GRAPH
      * }</code>
-     * @return ClusterMap
+     *
+     * @return ClustersMap
      */
     public function dbOpen( $database, $username = '', $password = '', Array $params = [] ) {
 
@@ -576,7 +601,7 @@ class PhpOrient implements ConfigurableInterface {
      *
      * @return int|string numeric
      */
-    public function dataClusterCount( Array $cluster_ids = [] ) {
+    public function dataClusterCount( Array $cluster_ids = array() ) {
         return $this->getTransport()->execute( 'dataClusterCount', [ 'ids' => $cluster_ids ] );
     }
 
@@ -593,6 +618,36 @@ class PhpOrient implements ConfigurableInterface {
             'cluster_name' => $cluster_name,
             'cluster_type' => $cluster_type
         ] );
+    }
+
+    /**
+     * Allow the next query to be fetched in a custom class
+     *
+     * @param bool|string $className
+     *
+     * @return $this
+     */
+    public function setFetchClass( $className = false ) {
+
+        if ( class_exists( $className ) && is_subclass_of( new $className, 'PhpOrient\Protocols\Binary\Data\Record' ) ) {
+            self::$fetchClass = $className;
+        } else {
+            self::$fetchClass = null;
+        }
+
+        return $this;
+
+    }
+
+    /**
+     * Get the current value of the fetch custom class name
+     *
+     * @return string|bool
+     */
+    public static function getFetchClass() {
+
+        return self::$fetchClass;
+
     }
 
 

@@ -214,7 +214,7 @@ class CSV {
         $isFloat   = false;
         for ( $i = 0; $i < $length; $i++ ) {
             $c = $input[ $i ];
-            if ( $c === '-' || is_numeric( $c ) ) {
+            if ( $c === '-' || is_numeric( $c ) || $c == 'E' ) {
                 $collected .= $c;
             } elseif ( $c === '.' ) {
                 $isFloat = true;
@@ -246,7 +246,10 @@ class CSV {
             }
             $input     = substr( $input, 1 );
         } elseif ( $c === 'c' || $c === 'd' ) {
-            $input = substr( $input, 1 );
+            if( !$useStrings ){
+                $collected = (double)$collected;
+            }
+            $input     = substr( $input, 1 );
         } elseif ( $isFloat ) {
             if( !$useStrings ){
                 $collected = (float)$collected;
@@ -516,7 +519,10 @@ class CSV {
         if ( is_string( $value ) ) {
             return '"' . str_replace( '"', '\\"', str_replace( '\\', '\\\\', $value ) ) . '"';
         } elseif ( is_float( $value ) ) {
-            return $value . 'f';
+            //this because float suffix "f"
+            // cut the numbers to the second decimal number
+            // if the field in OrientDB is set as double
+            return $value . 'd';
         } elseif ( is_int( $value ) ) {
             return $value;
         } elseif ( is_bool( $value ) ) {
@@ -526,7 +532,7 @@ class CSV {
         } elseif ( $value instanceof SerializableInterface ) {
             return self::serializeDocument( $value, $embedded );
         } elseif ( $value instanceof \DateTime ) {
-            return $value->getTimestamp() . 't';
+            return $value->getTimestamp() . '000t';
         } elseif ( $value instanceof ID ) {
             return $value->__toString();
         } elseif ( $value instanceof Bag ){

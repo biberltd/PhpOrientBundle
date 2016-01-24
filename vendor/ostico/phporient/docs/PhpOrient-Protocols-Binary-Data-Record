@@ -52,7 +52,7 @@ Properties
 
 #### $oData
 ```php
-    protected array $oData = []
+    protected array $oData = array()
 ```
  
 

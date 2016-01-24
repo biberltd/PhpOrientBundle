@@ -12,5 +12,5 @@ interface ConfigurableInterface {
      *
      * @return $this The current object, configured.
      */
-    public function configure( Array $options = [] );
+    public function configure( Array $options = array() );
 }

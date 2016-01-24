@@ -121,7 +121,7 @@ cluster_id and cluster_position separately
 
 #### $_writeStack
 ```php
-    protected array $_writeStack = []
+    protected array $_writeStack = array()
 ```
  Stack of elements to compile
 

@@ -32,7 +32,7 @@ class DataClusterDataRange extends Operation {
      * @return int[]|string[]
      */
     protected function _read() {
-        $result = [];
+        $result = array();
         $result[] = $this->_readLong();
         $result[] = $this->_readLong();
         return $result;

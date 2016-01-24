@@ -110,6 +110,8 @@ class SQLCommandsTest extends TestCase {
 
     public function testSQLBatch(){
 
+        $this->skipTestByOrientDBVersion([ '2.1.3', '2.0.13', '1.7.10' ]);
+
         $cmd = 'begin;' .
                'let a = create vertex set script = true;' .
                'let b = select from v limit 1;' .
@@ -122,14 +124,20 @@ class SQLCommandsTest extends TestCase {
 
     }
 
-    public function testDateDeserialization(){
-        $client = new PhpOrient('localhost',2424);
+    public function testDateDeserialization() {
+        $client = new PhpOrient( 'localhost', 2424 );
         $client->dbOpen( 'GratefulDeadConcerts', 'admin', 'admin' );
 
-        $dateToTest = \DateTime::createFromFormat( 'U', microtime(true) )->format( 'Y-m-d H:i:s' );
+        $dateToTest = \DateTime::createFromFormat( 'U', time() )->format( 'Y-m-d H:i:s' );
 
-        $result = $client->query("SELECT DATE( SYSDATE('yyy-MM-dd HH:mm:ss') ) FROM V LIMIT 1");
-        $this->assertEquals( $dateToTest, $result[0]->getOData()['DATE']->format('Y-m-d H:i:s') );
+        $result = $client->query( "SELECT DATE( SYSDATE('yyy-MM-dd HH:mm:ss') ) FROM V LIMIT 1" );
+        if ( $result[ 0 ]->getOData()[ 'DATE' ] instanceof \DateTime ) {
+            $date = $result[ 0 ]->getOData()[ 'DATE' ]->format( 'Y-m-d H:i:s' );
+        } else {
+            $date = '"Not a DateTime instance"';
+        }
+
+        $this->assertEquals( $dateToTest, $date );
 
     }
 
@@ -141,6 +149,8 @@ class SQLCommandsTest extends TestCase {
             $client->username = 'root';
             $client->password = 'root';
             $client->connect();
+
+            $this->skipTestByOrientDBVersion([ '2.1.3', '2.0.13', '1.7.10' ]);
 
             try {
                 $client->dbDrop( 'temp',
@@ -158,14 +168,15 @@ class SQLCommandsTest extends TestCase {
             );
 
             $client->dbOpen('temp');
-            $client->sqlBatch('
-                create class Prova1;
-                create property Prova1.aString string;
-                insert into Prova1 (aString) VALUES ("b"),("c"),("d");
-                create class Prova2;
-                create property Prova2.aString string;
-                create property Prova2.anEmbeddedSetOfString embeddedset string;
-                create property Prova2.prova1 link Prova1;');
+            $client->sqlBatch(
+                'create class Prova1;' .
+                'create property Prova1.aString string;' .
+                'insert into Prova1 (aString) VALUES ("b"),("c"),("d");' .
+                'create class Prova2;' .
+                'create property Prova2.aString string;' .
+                'create property Prova2.anEmbeddedSetOfString embeddedset string;' .
+                'create property Prova2.prova1 link Prova1;'
+            );
 
             $clusterProva1 = $client->query("select classes[name='Prova1'].defaultClusterId from 0:1", -1)[0]['classes'];
             $clusterProva2 = $client->query("select classes[name='Prova2'].defaultClusterId from 0:1", -1)[0]['classes'];
@@ -192,7 +203,7 @@ class SQLCommandsTest extends TestCase {
 //            print_r($record->getOData());
 
         } catch (\Exception $e) {
-            echo $e . "\n";
+//            echo $e . "\n";
         }
 
     }

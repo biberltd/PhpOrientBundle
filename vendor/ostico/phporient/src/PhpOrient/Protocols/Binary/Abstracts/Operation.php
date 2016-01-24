@@ -18,6 +18,7 @@ use PhpOrient\Exceptions\PhpOrientException;
 use PhpOrient\Exceptions\PhpOrientBadMethodCallException;
 use PhpOrient\Protocols\Binary\OrientSocket;
 use Closure;
+use PhpOrient\Protocols\Common\OrientNode;
 
 abstract class Operation implements ConfigurableInterface {
     use ConfigurableTrait;
@@ -37,7 +38,7 @@ abstract class Operation implements ConfigurableInterface {
      *
      * @var array
      */
-    protected $_writeStack = [];
+    protected $_writeStack = array();
 
     /**
      * @var string of read stream
@@ -55,9 +56,11 @@ abstract class Operation implements ConfigurableInterface {
     protected $_transport;
 
     /**
+     * Callback function to apply on Async records when they are fetched
+     *
      * @var Closure|string
      */
-    public $_callback;
+    protected $_callback;
 
     /**
      * Class constructor
@@ -145,8 +148,74 @@ abstract class Operation implements ConfigurableInterface {
         } elseif( $status === 3 ){
             // server push data for nodes up/down update info,
             // needed for failover on cluster
+
+            # Push notification, Node cluster changed
+            #
+            # BYTE (OChannelBinaryProtocol.PUSH_DATA);  # WRITE 3
+            # INT (Integer.MIN_VALUE);  # SESSION ID = 2^-31
+            #       80: \x50 Request Push 1 byte: Push command id
+            # STRING $payload
+            $this->_pushReceived(
+                $this->_readByte(),
+                CSV::unserialize( $this->_readString() )
+            );
+
+            $end_flag = $this->_readByte();
+            # this flag can be set more than once
+            while ( $end_flag == 3 ) {
+                $this->_readInt();  # FAKE SESSION ID = 2^-31
+                $this->_pushReceived(
+                    $this->_readByte(),
+                    CSV::unserialize( $this->_readString() )
+                );
+                $end_flag = $this->_readByte();
+            }
+
+            $sessionId = $this->_readInt(); //string termination
+
         }
 
+    }
+
+    /**
+     * Default callback for received push Notices
+     *
+     * @param $command_id
+     * @param $payload
+     */
+    protected function _pushReceived( $command_id, $payload ){
+        # REQUEST_PUSH_RECORD	        79
+        # REQUEST_PUSH_DISTRIB_CONFIG	80
+        # REQUEST_PUSH_LIVE_QUERY	    81
+        # TODO: this logic must stay within Messages class here I just want to receive
+        # an object of something, like a new array of cluster.
+        # We should register a callback and then execute it
+        $list = [];
+        if ( $command_id == 80 ){
+            foreach( $payload['members'] as $node ){
+                $list[] = new OrientNode( $node );
+            }
+            $this->_transport->setNodesList( $list ); # LIST WITH THE NEW CLUSTER CFG
+        }
+
+    }
+
+    /**
+     * Read an error from the remote server and turn it into an exception.
+     *
+     * @return PhpOrientException the wrapped exception object.
+     */
+    protected function _readError() {
+        $type    = $this->_readString();
+        $message = $this->_readString();
+        $hasMore = $this->_readByte();
+        if ( $hasMore === 1 ) {
+            $next = $this->_readError();
+        } else {
+            $javaStackTrace = $this->_readBytes();
+        }
+
+        return new PhpOrientException( $type . ': ' . $message );
     }
 
     /**
@@ -180,7 +249,7 @@ abstract class Operation implements ConfigurableInterface {
         $this->_dump_streams();
         $this->_socket->write( $this->_output_buffer );
         $this->_output_buffer = '';
-        $this->_writeStack = [];
+//        $this->_writeStack = [];
         return $this;
     }
 
@@ -395,24 +464,6 @@ abstract class Operation implements ConfigurableInterface {
     }
 
     /**
-     * Read an error from the remote server and turn it into an exception.
-     *
-     * @return PhpOrientException the wrapped exception object.
-     */
-    protected function _readError() {
-        $type    = $this->_readString();
-        $message = $this->_readString();
-        $hasMore = $this->_readByte();
-        if ( $hasMore === 1 ) {
-            $next = $this->_readError();
-        } else {
-            $javaStackTrace = $this->_readBytes();
-        }
-
-        return new PhpOrientException( $type . ': ' . $message );
-    }
-
-    /**
      * Read a serialized object from the remote server.
      *
      * @return mixed
@@ -445,30 +496,26 @@ abstract class Operation implements ConfigurableInterface {
 
         if ( $classId === -1 ) {
             throw new SocketException( 'No class for record, cannot proceed!' );
+        } elseif ( $classId === -2 ) {
+            // null record
+            $record[ 'bytes' ] = null;
+        } elseif ( $classId === -3 ) {
+            // reference
+            $record[ 'type' ] = 'd';
+            $cluster          = $this->_readShort();
+            $position         = $this->_readLong();
+            $record[ 'rid' ]  = new ID( $cluster, $position );
         } else {
-            if ( $classId === -2 ) {
-                // null record
-                $record[ 'bytes' ] = null;
-            } else {
-                if ( $classId === -3 ) {
-                    // reference
-                    $record[ 'type' ]     = 'd';
-                    $cluster             = $this->_readShort();
-                    $position            = $this->_readLong();
-                    $record[ 'rid' ]      = new ID( $cluster, $position );
-                } else {
-                    $record[ 'type' ]    = $this->_readChar();
-                    $cluster             = $this->_readShort();
-                    $position            = $this->_readLong();
-                    $record[ 'version' ] = $this->_readInt();
+            $record[ 'type' ]    = $this->_readChar();
+            $cluster             = $this->_readShort();
+            $position            = $this->_readLong();
+            $record[ 'version' ] = $this->_readInt();
 
-                    $data                 = CSV::unserialize( $this->_readBytes() );
-                    $record[ 'oClass' ]   = @$data[ 'oClass' ];
-                    $record[ 'rid' ]      = new ID( $cluster, $position );
-                    unset( $data[ 'oClass' ] );
-                    $record[ 'oData' ]    = $data;
-                }
-            }
+            $data               = CSV::unserialize( $this->_readBytes() );
+            $record[ 'oClass' ] = @$data[ 'oClass' ];
+            $record[ 'rid' ]    = new ID( $cluster, $position );
+            unset( $data[ 'oClass' ] );
+            $record[ 'oData' ] = $data;
         }
 
         return $record;

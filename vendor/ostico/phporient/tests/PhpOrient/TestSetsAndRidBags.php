@@ -111,6 +111,8 @@ class TestSetsAndRidBags extends TestCase {
 
         $client->connect();
 
+        $this->skipTestByOrientDBVersion([ '2.1.3', '2.0.13', '1.7.10' ]);
+
         try {
             $client->dbDrop( 'temp', Constants::STORAGE_TYPE_MEMORY );
         } catch ( \Exception $e ) {
@@ -125,22 +127,27 @@ class TestSetsAndRidBags extends TestCase {
 
         $client->dbOpen('temp');
 
-        $client->sqlBatch('
-            create class Test1;
-            create property Test1.aString string;
-            insert into Test1 (aString) VALUES ("b"),("c"),("d");
-            create class Test2;
-            create property Test2.aString string;
-            create property Test2.anEmbeddedSetOfString embeddedset string;
-            create property Test2.aLinkedSetOfTest1 linkset Test1;'
+        $client->sqlBatch(
+            'create class Test1;' .
+            'create property Test1.aString string;' .
+            'insert into Test1 (aString) VALUES ("b"),("c"),("d");' .
+            'create class Test2;' .
+            'create property Test2.aString string;' .
+            'create property Test2.anEmbeddedSetOfString embeddedset string;' .
+            'create property Test2.aLinkedSetOfTest1 linkset Test1;'
         );
 
 
         $clusterTest1 = $client->query("select classes[name='Test1'].defaultClusterId from 0:1", -1)[0]['classes'];
         $clusterTest2 = $client->query("select classes[name='Test2'].defaultClusterId from 0:1", -1)[0]['classes'];
 
-        $this->assertEquals( '9', $clusterTest1 );
-        $this->assertEquals( '10', $clusterTest2 );
+        if ( $client->getTransport()->getProtocolVersion() < 30 ){
+            $this->assertEquals( '9', $clusterTest1 );
+            $this->assertEquals( '10', $clusterTest2 );
+        } else {
+            $this->assertEquals( '11', $clusterTest1 );
+            $this->assertEquals( '12', $clusterTest2 );
+        }
 
         $newRecord = [
             'oClass' => 'Test2',
@@ -184,8 +191,14 @@ class TestSetsAndRidBags extends TestCase {
         /**
          * @var \PhpOrient\Protocols\Binary\Data\ID[] $aLinkedSetOfTest1
          */
-        $this->assertEquals( '#9:1', $aLinkedSetOfTest1[0]->jsonSerialize() );
-        $this->assertEquals( '#9:2', $aLinkedSetOfTest1[1]->__toString() );
+        if ( $client->getTransport()->getProtocolVersion() < 30 ){
+            $this->assertEquals( '#9:1', $aLinkedSetOfTest1[0]->jsonSerialize() );
+            $this->assertEquals( '#9:2', $aLinkedSetOfTest1[1]->__toString() );
+        } else {
+            $this->assertEquals( '#11:1', $aLinkedSetOfTest1[0]->jsonSerialize() );
+            $this->assertEquals( '#11:2', $aLinkedSetOfTest1[1]->__toString() );
+
+        }
 
     }
 

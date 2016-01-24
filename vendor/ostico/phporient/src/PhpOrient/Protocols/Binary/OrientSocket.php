@@ -75,6 +75,11 @@ class OrientSocket {
                         'without connection parameters');
             }
 
+            if( !extension_loaded( "sockets" ) ){
+                throw new SocketException('Can not initialize a connection ' .
+                        'without socket extension enabled. Please check you php.ini');
+            }
+
             $this->_socket = @socket_create( AF_INET, SOCK_STREAM, getprotobyname('tcp') );
             socket_set_block( $this->_socket );
             socket_set_option( $this->_socket, SOL_SOCKET, SO_RCVTIMEO, array( 'sec' => self::READ_TIMEOUT, 'usec' => 0 ) );
@@ -133,9 +138,10 @@ class OrientSocket {
         $remaining = $size;
 
         do {
-            $data .= socket_read( $this->_socket, $remaining, PHP_BINARY_READ );
+            $_data = socket_read( $this->_socket, $remaining, PHP_BINARY_READ );
+            $data .= $_data;
             $remaining = $size - strlen( $data );
-            if( $data === false || $data === '' ) {
+            if( $_data === false || $_data === '' ) {
                 //https://bugs.php.net/bug.php?id=69008
                 //I must hard-code the error because of a bug in PHP
                 throw new SocketException( "socket_read(): unable to read from socket [104]: Connection reset by peer" );

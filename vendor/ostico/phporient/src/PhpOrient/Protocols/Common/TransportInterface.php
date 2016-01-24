@@ -12,6 +12,6 @@ interface TransportInterface extends ConfigurableInterface {
      *
      * @return mixed The result of the operation.
      */
-    public function execute( $operation, array $params = [] );
+    public function execute( $operation, array $params = array() );
 
 }

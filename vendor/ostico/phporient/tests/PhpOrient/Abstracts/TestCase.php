@@ -2,7 +2,7 @@
 
 namespace PhpOrient\Abstracts;
 use PhpOrient\PhpOrient;
-use PhpOrient\Protocols\Common\ClusterMap;
+use PhpOrient\Protocols\Common\ClustersMap;
 use PhpOrient\Protocols\Common\Constants;
 
 abstract class TestCase extends \PHPUnit_Framework_TestCase {
@@ -17,7 +17,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase {
     protected $db_name;
 
     /**
-     * @var ClusterMap
+     * @var ClustersMap
      */
     protected $cluster_struct;
 
@@ -55,6 +55,19 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase {
                     strrpos( get_class($this), "\\" ) + 1
                 ) . "::" . $this->getName(false), 61, " ", STR_PAD_RIGHT
             ) . " - Did in " . $resultTime . " seconds.\n";
+    }
+
+    public function skipTestByOrientDBVersion( Array $skipVersions ){
+
+        $orientVersion = $this->client->getTransport()->getOrientVersion();
+        $vString = $orientVersion->getRelease();
+
+        foreach ( $skipVersions as $version ) {
+            if ( stripos( $vString, $version ) !== false ) {
+                $this->markTestSkipped( 'Bug sqlBatch on OrientDB version ' . $vString );
+            }
+        }
+
     }
 
 }

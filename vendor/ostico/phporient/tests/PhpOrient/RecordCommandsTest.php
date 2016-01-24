@@ -320,6 +320,8 @@ class RecordCommandsTest extends TestCase {
 
         $res = $client->execute('connect');
 
+        $this->skipTestByOrientDBVersion([ '2.1.3', '2.0.13', '1.7.10' ]);
+
         try {
             $client->dbDrop( "db_test_edges", Constants::STORAGE_TYPE_MEMORY );
         } catch ( \Exception $e ) {
@@ -332,7 +334,8 @@ class RecordCommandsTest extends TestCase {
             Constants::DATABASE_TYPE_GRAPH
         );
 
-        $orientInfo = $client->dbOpen( "db_test_edges", 'admin', 'admin' );
+        $orientClustersInfo = $client->dbOpen( "db_test_edges", 'admin', 'admin' );
+        $orientVersion = $client->getTransport()->getOrientVersion();
 
         $cmd = 'begin;' .
             'let a = create vertex set script = true;' .
@@ -349,6 +352,7 @@ class RecordCommandsTest extends TestCase {
         $rec = $client->recordLoad( new ID("#9:0") )[0];
 
         /**
+         * @var $rec Record
          * @var $bag \PhpOrient\Protocols\Binary\Data\Bag
          */
         $bag = $rec->getOData()['in_'];
@@ -356,15 +360,16 @@ class RecordCommandsTest extends TestCase {
         $client->recordUpdate($rec);
 
         /**
+         * @var $rec Record
          * @var $bag2 \PhpOrient\Protocols\Binary\Data\Bag
          */
         $rec = $client->recordLoad( new ID("#9:0") )[0];
         $bag2 = $rec->getOData()['in_'];
         $this->assertNotEmpty( $bag2->getRawBagContent() );
 
-        if( $orientInfo->getMajorVersion() >= 2
-            && $orientInfo->getMinorVersion() >= 0
-            && ( $orientInfo->getBuildNumber() >= 7 || !is_numeric( $orientInfo->getBuildNumber() ) )
+        if( $orientVersion->getMajorVersion() >= 2
+            && $orientVersion->getMinorVersion() >= 0
+            && ( $orientVersion->getBuildNumber() >= 7 || !is_numeric( $orientVersion->getBuildNumber() ) )
         ) {
             $this->assertEquals( $bag->getRawBagContent(), $bag2->getRawBagContent() );
         }
@@ -413,6 +418,41 @@ class RecordCommandsTest extends TestCase {
         $updatedRecord = $client->recordUpdate( $record );
 
         $this->assertEquals( $record, $updatedRecord );
+
+    }
+
+
+    public function testRecordData(){
+
+        $db_name = 'test_record_data';
+        $client = new PhpOrient( 'localhost', 2424 );
+        $client->connect( 'root', 'root' );
+
+        $this->skipTestByOrientDBVersion( [ '2.0.13', '1.7.10' ] );
+
+        try {
+            $client->dbDrop( $db_name, Constants::STORAGE_TYPE_MEMORY );
+        } catch ( \Exception $e ) {
+//            echo $e->getMessage();
+            $client->getTransport()->debug( $e->getMessage() );
+        }
+
+        $client->dbCreate( $db_name,
+            Constants::STORAGE_TYPE_MEMORY,
+            Constants::DATABASE_TYPE_GRAPH
+        );
+
+        $client->dbOpen( $db_name, 'admin', 'admin' );
+
+        $client->command( "create class Test extends V" );
+        $client->command( "create property Test.id string" );
+        $client->command( "alter property Test.id DEFAULT uuid()" );
+
+        $rec = ( new Record() )->setOData( [] )->setRid( new ID( 11 ) );
+        $record = $client->recordCreate( $rec );
+
+        $this->assertArrayHasKey( 'id', $record );
+        $this->assertNotEmpty( $record[ 'id' ] );
 
     }
 
