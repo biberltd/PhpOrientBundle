@@ -20,7 +20,7 @@ interface RepositoryInterface{
 
 	function update(array $collection);
 
-	function select($query);
-
 	function delete(array $collection);
+
+	function selectByRid($rid, $class);
 }

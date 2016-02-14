@@ -35,7 +35,7 @@ abstract class BaseType{
 			if(!$this->validateValue($value)){
 				throw new InvalidValueException($this);
 			}
-			$this->value = $value;
+			$this->setValue($value);
 		}
 	}
 	/**

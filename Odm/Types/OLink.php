@@ -27,8 +27,8 @@ class OLink extends BaseType{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct($value){
-		parent::__construct('Link', $value);
+	public function __construct($value = null){
+		parent::__construct('OLink', $value);
 	}
 
 	/**
@@ -57,7 +57,7 @@ class OLink extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
-		if(!$value instanceof ID){
+		if(!$value instanceof ID && !is_null($value)){
 			throw new InvalidValueException($this);
 		}
 		return true;

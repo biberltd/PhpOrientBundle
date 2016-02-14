@@ -27,7 +27,7 @@ class OBoolean extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function __construct($value){
-		parent::__construct('Boolean', $value);
+		parent::__construct('OBoolean', $value);
 	}
 
 	/**

@@ -14,7 +14,7 @@
 
 namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Entity;
 
-use BiberLtd\Bundle\PhpOrientBundle\Odm\Types\RecordId;
+use BiberLtd\Bundle\PhpOrientBundle\Odm\Types\ORecordId;
 use Doctrine\Common\Annotations\AnnotationException;
 use Doctrine\ORM\Mapping AS ORM;
 use Doctrine\ORM\Mapping\Column;
@@ -24,7 +24,7 @@ use Doctrine\Common\Annotations\AnnotationReader as AnnotationReader;
 
 class BaseEntity{
 	/**
-	 * @ORM\Column(type="RecordId")
+	 * @ORM\Column(type="ORecordId")
 	 */
 	public $rid = null;
 	/**
@@ -32,11 +32,11 @@ class BaseEntity{
 	 */
 	protected $modified = false;
 	/** @var  \DateTime */
-	public $dateAdded;
+	protected $dateAdded;
 	/** @var  \DateTime */
-	public $dateUpdated;
+	protected $dateUpdated;
 	/** @var  \DateTime|null */
-	public $dateRemoved = null;
+	protected $dateRemoved = null;
 	/** @var  string $version md5 Hash of object serialization */
 	protected $versionHash;
 	/** @var array Version history, the first element is always the original version */
@@ -57,7 +57,7 @@ class BaseEntity{
 		if(is_null($record)){
 			$this->dateAdded = new \DateTime('now', new \DateTimeZone($timezone));
 			$this->record = $record;
-			$this->dateUpdate = $this->dateAdded;
+			$this->dateUpdated = $this->dateAdded;
 			$this->setDefaults();
 		}
 		else{
@@ -106,14 +106,21 @@ class BaseEntity{
 	 *
 	 * @return ID
 	 */
-	public function getRecordId(){
-		return $this->getRid();
+	public function getRecordId($as = 'object'){
+		return $this->getRid($as);
 	}
 
 	/**
 	 * @return ID
 	 */
-	public function getRid(){
+	public function getRid($as = 'object'){
+		if($as == 'string'){
+			/**
+			 * @var ID $id
+			 */
+			$id = $this->rid->getValue();
+			return '#'.$id->cluster.':'.$id->position;
+		}
 		return $this->rid->getValue();
 	}
 	/**
@@ -133,14 +140,14 @@ class BaseEntity{
 	 * @return $this
 	 */
 	public function setRid($rid){
-		$this->rid = new RecordId($rid);
+		$this->rid = new ORecordId($rid);
 		return $this;
 	}
 	/**
 	 * @param \PhpOrient\Protocols\Binary\Data\Record $record
 	 */
 	public function convertRecordToOdmObject(ORecord $record){
-		$this->rid = new RecordId($record->getRid());
+		$this->rid = new ORecordId($record->getRid());
 		$recordData = $record->getOData();
 		foreach($this->propAnnotations as $propName => $propAnnotations){
 			if($propName == 'rid'){
@@ -149,7 +156,9 @@ class BaseEntity{
 			foreach($propAnnotations as $propAnnotation){
 				if($propAnnotation instanceof Column){
 					$set = 'set'.ucfirst($propName);
-					$this->$set($record[$propName]);
+					if(isset($recordData[$propName])){
+						$this->$set($recordData[$propName]);
+					}
 				}
 			}
 		}
@@ -180,7 +189,7 @@ class BaseEntity{
 	 * @return mixed
 	 * @throws \Doctrine\Common\Annotations\AnnotationException
 	 */
-	protected function getColumnDefinition($propertyName){
+	public function getColumnDefinition($propertyName){
 		$aPropertyReflection = new \ReflectionProperty(get_class($this), $propertyName);
 		$annoReader = new AnnotationReader();
 		$propAnnotations = $annoReader->getPropertyAnnotations($aPropertyReflection);
@@ -198,7 +207,7 @@ class BaseEntity{
 	 * @return mixed
 	 * @throws \Doctrine\Common\Annotations\AnnotationException
 	 */
-	protected function getColumnType($propertyName){
+	public function getColumnType($propertyName){
 		$colDef = $this->getColumnDefinition($propertyName);
 
 		return $colDef->type;
@@ -259,8 +268,13 @@ class BaseEntity{
 	private function setDefaults(){
 		$nsRoot = 'BiberLtd\\Bundle\\PhpOrientBundle\\Odm\\Types\\';
 		foreach($this->props as $aProperty){
-			$propName = new $aProperty->getName();
-			$this->$propName = new $nsRoot.$aProperty->getType();
+			/**
+			 * @var \ReflectionProperty $aProperty
+			 */
+			$propName = $aProperty->getName();
+			$colType = $this->getColumnType($propName);
+			$class = $nsRoot.$colType;
+			$this->$propName = new $class();
 		}
 		return $this;
 	}

@@ -16,7 +16,7 @@ namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Types;
 
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException;
 
-class OLong extends Integer{
+class OLong extends OInteger{
 
 	/** @var float $value */
 	protected $value;
@@ -26,7 +26,7 @@ class OLong extends Integer{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct($value){
+	public function __construct($value = null){
 		parent::__construct($value);
 	}
 }

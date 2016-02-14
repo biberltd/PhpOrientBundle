@@ -27,8 +27,8 @@ class OrientCollection extends BaseType{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct(array $value = []){
-		parent::__construct('OrientCollection', $value);
+	public function __construct($type = 'OrientCollection', array $value = []){
+		parent::__construct($type, $value);
 	}
 
 	/**

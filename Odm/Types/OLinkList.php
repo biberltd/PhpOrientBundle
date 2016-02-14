@@ -28,7 +28,7 @@ class OLinkList extends OrientCollection{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function __construct(array $value = []){
-		parent::__construct('LinkList', $value);
+		parent::__construct('OLinkList', $value);
 	}
 
 	/**

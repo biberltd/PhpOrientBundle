@@ -26,8 +26,8 @@ class ODateTime extends BaseType{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct($value){
-		parent::__construct('DateTime', $value);
+	public function __construct($value = null){
+		parent::__construct('ODateTime', $value);
 	}
 
 	/**
@@ -56,7 +56,7 @@ class ODateTime extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
-		if(!$value instanceof \DateTime){
+		if(!$value instanceof \DateTime && $value != null){
 			throw new InvalidValueException($this);
 		}
 		return true;

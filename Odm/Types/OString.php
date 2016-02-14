@@ -27,7 +27,7 @@ class OString extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function __construct($value){
-		parent::__construct('String', $value);
+		parent::__construct('OString', $value);
 	}
 
 	/**

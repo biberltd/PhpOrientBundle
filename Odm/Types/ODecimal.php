@@ -26,8 +26,8 @@ class ODecimal extends BaseType{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct($value){
-		parent::__construct('Decimal', $value);
+	public function __construct($value = null){
+		parent::__construct('ODecimal', $value);
 	}
 
 	/**
@@ -56,7 +56,7 @@ class ODecimal extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
-		if(!is_double($value)){
+		if(!is_double($value) && $value != null){
 			throw new InvalidValueException($this);
 		}
 		return true;

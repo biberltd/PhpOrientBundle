@@ -27,7 +27,7 @@ class OEmbeddedSet extends OrientCollection{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function __construct(array $value = []){
-		parent::__construct('EmbeddedSet', $value);
+		parent::__construct('OEmbeddedSet', $value);
 	}
 
 	/**

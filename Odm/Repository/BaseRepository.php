@@ -14,19 +14,30 @@
 
 namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Repository;
 
+use BiberLtd\Bundle\PhpOrientBundle\Odm\Entity\BaseEntity;
+use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\UniqueRecordExpected;
+use BiberLtd\Bundle\PhpOrientBundle\Odm\Responses\RepositoryResponse;
+use BiberLtd\Bundle\PhpOrientBundle\Odm\Types\ORecordId;
 use BiberLtd\Bundle\PhpOrientBundle\Services\PhpOrient;
+use PhpOrient\Protocols\Binary\Data\ID;
+use PhpOrient\Protocols\Binary\Data\Record;
 
 abstract class BaseRepository implements RepositoryInterface{
 	protected $oService;
 	protected $class;
 
 	/**
+	 * BaseRepository constructor.
+	 *
+	 * @param        $container
 	 * @param string $hostname
 	 * @param int    $port
 	 * @param string $token
+	 * @param string $dbUsername
+	 * @param string $dbPass
 	 */
-	public function __construct($hostname = 'localhost', $port = 2424, $token = '', $dbUsername = '', $dbPass = ''){
-		$this->oService = new PhpOrient($hostname, $port, $token);
+	public function __construct($container, $hostname = 'localhost', $port = 2424, $token = '', $dbUsername = '', $dbPass = ''){
+		$this->oService = new PhpOrient($container, $hostname, $port, $token);
 		$this->oService->connect($dbUsername, $dbPass);
 	}
 
@@ -38,17 +49,39 @@ abstract class BaseRepository implements RepositoryInterface{
 	public final function insert(array $collection){
 		$resultSet = [];
 		foreach($collection as $anEntity){
+			/**
+			 * @var BaseEntity $anEntity
+			 */
 			$query = $this->prepareInsertQuery($anEntity);
-			$resultSet[] = $this->oService->command($query);
+			/**
+			 * @var Record $insertedRecord
+			 */
+			$insertedRecord = $this->oService->command($query);
+			$anEntity->setRid($insertedRecord->getRid());
+			$resultSet[] = $anEntity;
 		}
-		return $resultSet;
+
+		return new RepositoryResponse($resultSet);
 	}
 
 	/**
-	 * @todo
+	 * @param array $collection
+	 *
+	 * @return array
 	 */
 	public function update(array $collection){
-
+		$resultSet = [];
+		foreach($collection as $anEntity){
+			/**
+			 * @var BaseEntity $anEntity
+			 */
+			$query = $this->prepareUpdateQuery($anEntity);
+			$result = $this->oService->command($query);
+			if(is_array($result) && $result[0] == 1){
+				$resultSet[] = $anEntity;
+			}
+		}
+		return new RepositoryResponse($resultSet);
 	}
 
 	/**
@@ -56,17 +89,32 @@ abstract class BaseRepository implements RepositoryInterface{
 	 * @param int    $limit
 	 * @param string $fetchPlan
 	 *
-	 * @todo SQL Injection etc. cleanups
+	 * @return mixed
 	 */
-	public function select($query, $limit = 20, $fetchPlan = '*:0'){
+	public function query($query, $limit = 20, $fetchPlan = '*:0'){
 		$resultSet = $this->oService->query($query, $limit, $fetchPlan);
+
+		return new RepositoryResponse($resultSet);
 	}
 
 	/**
-	 * @todo
+	 * @param array $collection
+	 *
+	 * @return array
 	 */
 	public function delete(array $collection){
-
+		$resultSet = [];
+		foreach($collection as $anEntity){
+			/**
+			 * @var BaseEntity $anEntity
+			 */
+			$query = 'DELETE FROM '.$this->class.' WHERE @rid = '.$anEntity->getRid('string');
+			$result = (bool) $this->oService->command($query);
+			if($result){
+				$resultSet[] = $anEntity;
+			}
+		}
+		return new RepositoryResponse($resultSet);
 	}
 
 	/**
@@ -76,29 +124,36 @@ abstract class BaseRepository implements RepositoryInterface{
 	 */
 	private function prepareInsertQuery($entity){
 		$props = $entity->getProps();
-		$query = 'INSERT INTO '.$this->class;
+		$query = 'INSERT INTO '.$this->class.' ';
 		$propStr = '';
 		$valuesStr = '';
 		foreach ($props as $aProperty){
 			$propName = $aProperty->getName();
 			$get = 'get'.ucfirst($propName);
+			$value = $entity->$get();
+			if($propName == 'rid'){
+				continue;
+			}
+			if(is_null($value) || empty($value)){
+				continue;
+			}
 			$propStr .= $propName.', ';
 			$colDef = $entity->getColumnDefinition($propName);
 			switch(strtolower($colDef->type)){
-				case 'binary':
+				case 'obinary':
 					/**
 					 * @todo to be implemented
 					 */
 					break;
-				case 'boolean':
+				case 'oboolean':
 					$valuesStr .= $entity->$get().', ';
 					break;
-				case 'date':
+				case 'odate':
 					/**
 					 * @todo to be implemented
 					 */
 					break;
-				case 'datetime':
+				case 'odatetime':
 					$dateObj = $entity->$get()->format();
 					$valuesStr .= '"'
 									.mktime(
@@ -111,34 +166,34 @@ abstract class BaseRepository implements RepositoryInterface{
 									)
 								.'", ';
 					break;
-				case 'decimal':
-				case 'float':
-				case 'integer':
-				case 'short':
-				case 'long':
+				case 'odecimal':
+				case 'ofloat':
+				case 'ointeger':
+				case 'oshort':
+				case 'olong':
 					$valuesStr .= $entity->$get().', ';
 					break;
-				case 'embedded':
-				case 'embeddedlist':
-				case 'embeddedmap':
-				case 'embeddedmap':
+				case 'oembedded':
+				case 'oembeddedlist':
+				case 'oembeddedmap':
+				case 'oembeddedmap':
 					$valuesStr .= json_encode($entity->$get()).', ';
 					break;
-				case 'link':
+				case 'olink':
 					$valuesStr .= '"'.$entity->$get().'", ';
 					break;
-				case 'linkbag':
-				case 'linklist':
-				case 'linkmap':
-				case 'linkset':
+				case 'olinkbag':
+				case 'olinklist':
+				case 'olinkmap':
+				case 'olinkset':
 					/**
 					 * @todo to be implemented
 					 */
 					break;
-				case 'recordid':
+				case 'orecordid':
 					$valuesStr .= '"'.$entity->$get().'", ';
 					break;
-				case 'string':
+				case 'ostring':
 					$valuesStr .= '"'.$entity->$get().'", ';
 					break;
 			}
@@ -147,5 +202,128 @@ abstract class BaseRepository implements RepositoryInterface{
 		$valuesStr = rtrim($valuesStr, ', ');
 		$query .= '('.$propStr.') VALUES ('.$valuesStr.')';
 		return $query;
+	}
+
+	/**
+	 * @param $entity
+	 *
+	 * @return string
+	 */
+	private function prepareUpdateQuery($entity){
+		$props = $entity->getProps();
+		$query = 'UPDATE '.$this->class.' SET ';
+		$propStr = '';
+		foreach ($props as $aProperty){
+			$propName = $aProperty->getName();
+			$get = 'get'.ucfirst($propName);
+			$value = $entity->$get();
+			if($propName == 'rid'){
+				continue;
+			}
+			if(is_null($value) || empty($value)){
+				continue;
+			}
+			$propStr .= $propName.' = ';
+			$colDef = $entity->getColumnDefinition($propName);
+			$valuesStr = '';
+			switch(strtolower($colDef->type)){
+				case 'obinary':
+					/**
+					 * @todo to be implemented
+					 */
+					break;
+				case 'oboolean':
+					$valuesStr .= $entity->$get();
+					break;
+				case 'odate':
+					/**
+					 * @todo to be implemented
+					 */
+					break;
+				case 'odatetime':
+					$dateObj = $entity->$get()->format();
+					$valuesStr .= '"'
+						.mktime(
+							$dateObj->format('H'),
+							$dateObj->format('i'),
+							$dateObj->format('s'),
+							$dateObj->format('n'),
+							$dateObj->format('j'),
+							$dateObj->format('Y')
+						).'"';
+					break;
+				case 'odecimal':
+				case 'ofloat':
+				case 'ointeger':
+				case 'oshort':
+				case 'olong':
+					$valuesStr .= $entity->$get();
+					break;
+				case 'oembedded':
+				case 'oembeddedlist':
+				case 'oembeddedmap':
+				case 'oembeddedmap':
+					$valuesStr .= json_encode($entity->$get());
+					break;
+				case 'olink':
+					$valuesStr .= '"'.$entity->$get().'"';
+					break;
+				case 'olinkbag':
+				case 'olinklist':
+				case 'olinkmap':
+				case 'olinkset':
+					/**
+					 * @todo to be implemented
+					 */
+					break;
+				case 'orecordid':
+					$valuesStr .= '"'.$entity->$get().'"';
+					break;
+				case 'ostring':
+					$valuesStr .= '"'.$entity->$get().'"';
+					break;
+			}
+			$propStr .= $valuesStr.', ';
+		}
+		$propStr = rtrim($propStr, ', ');
+		$query .= $propStr.' WHERE @rid = '.$entity->getRecordId('string');
+		return $query;
+	}
+
+	/**
+	 * @param $rid
+	 *
+	 * @return mixed
+	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\UniqueRecordExpected
+	 */
+	public function selectByRId($rid, $class){
+		if($rid instanceof ID){
+			$rid = $rid;
+		}
+		elseif($rid instanceof ORecordId){
+			$rid = $rid->getValue();
+		}
+		else{
+			$oRid = new ORecordId($rid);
+			$rid = $oRid->getValue();
+		}
+		/**
+		 * @var ID $rid
+		 */
+		$q = 'SELECT FROM '.$this->class.' WHERE @rid = #'.$rid->cluster.':'.$rid->position;
+		$result = $this->query($q, 1);
+
+		if(count($result) > 1){
+			throw new UniqueRecordExpected($class, $rid, 'ORecordId');
+		}
+		if(count($result) <= 0){
+			return null;
+		}
+		$collection = [];
+
+		foreach($result as $item){
+			$collection[] = new $class($item);
+		}
+		return new RepositoryResponse($collection[0]);
 	}
 }

@@ -27,7 +27,7 @@ class OBinary extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function __construct($value){
-		parent::__construct('Binary', $value);
+		parent::__construct('OBinary', $value);
 	}
 
 	/**

@@ -25,7 +25,7 @@ class OEmbeddedMap extends BaseType{
 	 * @param object $value
 	 */
 	public function __construct($value = null){
-		parent::__construct('EmbeddedMap', $value);
+		parent::__construct('OEmbeddedMap', $value);
 	}
 
 	/**
@@ -43,7 +43,18 @@ class OEmbeddedMap extends BaseType{
 	 */
 	public function setValue($value){
 		if($this->validateValue($value)){
-			$this->value = $value;
+			if($value instanceof OEmbeddedMap){
+				$this->value = $value->getValue();
+			}
+			else if(is_object($value)){
+				$this->value = $value;
+			}
+			else if(is_string($value)){
+				$jDecodable = json_decode($value);
+				if($jDecodable instanceof \stdClass){
+					$this->value = $jDecodable;
+				}
+			}
 		}
 		return $this;
 	}
@@ -54,8 +65,14 @@ class OEmbeddedMap extends BaseType{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
-		if(!is_object($value)){
+		if(!is_object($value) && $value != null){
 			throw new InvalidValueException($this);
+		}
+		if(is_null($value)){
+			return true;
+		}
+		if($value instanceof OEmbeddedMap){
+			return true;
 		}
 		foreach($value as $key => $item){
 			if(!is_string($item) || !is_string($key)){
