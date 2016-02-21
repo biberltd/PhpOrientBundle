@@ -43,24 +43,64 @@ class OLink extends BaseType{
 	 *
 	 * @return $this
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
+	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Types\InvalidRecordIdString
 	 */
 	public function setValue($value){
-		if($this->validateValue($value)){
+		if(!$this->validateValue($value)){
+			throw new InvalidValueException('ORecordId');
+		}
+		if($value instanceof ID){
 			$this->value = $value;
 		}
+		else if(is_array($value) && count($value) === 2){
+			$this->value = new ID($value[0], $value[1]);
+		}
+		else if (is_string($value)){
+			if(strpos($value, '#') !== 0){
+				throw new InvalidRecordIdString();
+			}
+			$value = str_replace('#', '', $value);
+			$value = explode(':', $value);
+			if(count($value) !== 2){
+				throw new InvalidRecordIdString();
+			}
+			$this->value = new ID($value[0], $value[1]);
+		}
+
+		unset($value);
 		return $this;
 	}
-	/*
+
+	/**
 	 * @param mixed $value
 	 *
 	 * @return bool
-	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
-		if(!$value instanceof ID && !is_null($value)){
-			throw new InvalidValueException($this);
+		if($value instanceof ID){
+			return true;
+		}
+		else if(is_array($value) && count($value) === 2){
+			return true;
+		}
+		else{
+			if(is_string($value)){
+				if(strpos($value, '#') !== 0){
+					return false;
+				}
+				$value = str_replace('#', '', $value);
+				$value = explode(':', $value);
+				if(count($value) !== 2){
+					return false;
+				}
+				return true;
+			}
+			elseif($value == null){
+				return true;
+			}
 		}
 		return true;
+
 	}
 
 }

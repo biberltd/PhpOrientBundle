@@ -1,4 +1,4 @@
-<?php
+cd <?php
 
 namespace BiberLtd\Bundle\PhpOrientBundle\Command;
 
@@ -30,7 +30,7 @@ class OrientBackupCommand extends ContainerAwareCommand
         $output->writeln('Backing up...');
 
         // Filesystem
-        $filesystem = new Filesystem();
+        $filesystem = new Fileystem();
 
         // Parameters
         $orientParams = $this->getContainer()->getParameter('orientdb');
