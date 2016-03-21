@@ -286,7 +286,12 @@ class PhpOrient
 	 */
 	public function dbOpen($database, array $params = [])
 	{
-		$databaseCredentials = $this->orientParams['database'][$database];
+		if(count($params) < 1){
+			$databaseCredentials = $this->orientParams['database'][$database];
+		}
+		else{
+			$databaseCredentials = $params;g
+		}
 		$username = $databaseCredentials['username'];
 		$password = $databaseCredentials['password'];
 
