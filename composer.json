@@ -2,7 +2,7 @@
     "name": "biberltd/php-orient-bundle",
     "type": "symfony-bundle",
     "description": "Wrapper for OrientTech's PhpOrient driver. (May evolve into a basic ODM in the future).",
-    "keywords": ["orientdb", "symfony2"],
+    "keywords": ["orientdb", "symfony3"],
     "homepage": "https://github.com/biberltd/PhpOrientBundle",
     "license": "MIT",
     "authors": [
@@ -12,7 +12,7 @@
         }
     ],
     "require": {
-        "php": ">=7.0",
+        "php": "^7.0",
         "ostico/phporient": "~1.2",
         "symfony/process": "^3.0",
         "symfony/filesystem": "^3.0"
