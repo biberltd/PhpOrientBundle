@@ -59,7 +59,7 @@ class OInteger extends BaseType{
 		if(is_numeric($value)){
 			$value = (int) $value;
 		}
-		if(!is_integer($value)){
+		if(!is_integer($value) && !is_null($value)){
 			throw new InvalidValueException($this);
 		}
 		return true;

@@ -1,17 +1,17 @@
 <?php
 /**
- * @package     bodev-core-bundles/php-orient-bundle
- * @subpackage  Odm/Entity
- * @name        BaseEntity
+ * 2016 (C) BOdev Office | bodevoffice.com
  *
- * @author      Biber Ltd. (www.biberltd.com)
- * @author      Can Berkol
+ * @license MIT
  *
- * @copyright   Biber Ltd. (C) 2015
+ * Developed by Biber Ltd. (http://www.biberltd.com), a partner of BOdev Office (http://www.bodevoffice.com)
  *
- * @version     1.0.1
+ * Paid Customers ::
+ *          
+ * Check http://team.bodevoffice.com for technical documentation or consult your representative.
+ *
+ * Contact support@bodevoffice.com for support requests.
  */
-
 namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Entity;
 
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Types\ORecordId;
@@ -48,11 +48,17 @@ class BaseEntity{
 	/** @var array Holds annotation definitions. */
 	private $propAnnotations = [];
 
+	protected $controller;
+
 	/**
+	 * BaseEntity constructor.
+	 *
+	 * @param null                                         $controller
 	 * @param \PhpOrient\Protocols\Binary\Data\Record|null $record
 	 * @param string                                       $timezone
 	 */
-	public function __construct(ORecord $record = null, $timezone = 'Europe/Istanbul'){
+	public function __construct($controller, ORecord $record = null, $timezone = 'Europe/Istanbul'){
+		$this->controller = $controller;
 		$this->prepareProps()->preparePropAnnotations();
 		if(is_null($record)){
 			$this->dateAdded = new \DateTime('now', new \DateTimeZone($timezone));
@@ -214,45 +220,93 @@ class BaseEntity{
 	}
 
 	/**
-	 * @param string $to json, xml
+	 * @param string     $to
+	 * @param array|null $props
 	 *
 	 * @return string
 	 */
-	public function output($to = 'json'){
+	public function output($to = 'json', array $props = null){
 		switch($to){
 			case 'json':
-				return $this->outputToJson();
+				return $this->outputToJson($props);
 			case 'xml':
-				return $this->outputToXml();
+				return $this->outputToXml($props);
 		}
 	}
 
 	/**
-	 * @return string
+	 * @param array|null $props
+	 *
+	 * @return \stdClass
 	 */
-	final private function outputToJson(){
+	public function getRepObject(array $props = null){
 		$objRepresentation = new \stdClass();
+		if(isset($this->controller->dateTimeFormat)){
+			$dtFormat = $this->controller->dateTimeFormat;
+		}
+		else{
+			$dtFormat = 'd.m.Y H:i:s';
+		}
 		foreach($this->props as $aProperty){
 			$propName = $aProperty->getName();
-			$objRepresentation->$propName = !is_null($this->$propName) ? $this->$propName->getValue() : null;
+			if(!is_null($props) && !in_array($propName, $props)){
+				continue;
+			}
+			if(!is_null($this->$propName)){
+				if(is_array($this->$propName->getValue())){
+					$collection = [];
+					foreach($this->$propName->getValue() as $anItem){
+						if($anItem instanceOf ID){
+							$collection[] = '#'.$anItem->cluster.':'.$anItem->position;
+						}
+						else if($anItem instanceOf \DateTime){
+							$collection[] = $anItem->format($dtFormat);
+						}
+						else if(is_object($anItem) && method_exists($anItem, 'getValue')){
+							$collection[] = $anItem->getValue();
+						}
+						else{
+							$collection[] = $anItem;
+						}
+					}
+					$objRepresentation->$propName = $collection;
+				}
+				else if($this->$propName->getValue() instanceOf \DateTime){
+					$objRepresentation->$propName = $this->$propName->getValue()->format($dtFormat);
+				}
+				else if($this->$propName->getValue() instanceOf ID){
+					$idObj = $this->$propName->getValue();
+					$objRepresentation->$propName = '#'.$idObj->cluster.':'.$idObj->position;
+				}
+				else{
+					$objRepresentation->$propName = $this->$propName->getValue();
+				}
+			}
+			else{
+				$objRepresentation->$propName = null;
+			}
 		}
 
-		return json_encode($objRepresentation);
+		return $objRepresentation;
 	}
 
 	/**
+	 * @param array $props
+	 *
+	 * @return string
+	 */
+	final private function outputToJson(array $props = null){
+		return json_encode($this->getRepObject($props));
+	}
+
+	/**
+	 * @param array $props
 	 * @return string
 	 *
 	 * @todo !! BE AWARE !! xmlrpc_encode is an experimental method.
 	 */
-	final private function outputToXml(){
-		$objRepresentation = new \stdClass();
-		foreach($this->props as $aProperty){
-			$propName = $aProperty->getName();
-			$objRepresentation->$propName = !is_null($this->$propName) ? $this->$propName->getValue() : null;
-		}
-
-		return xmlrpc_encode($objRepresentation);
+	final private function outputToXml(array $props = null){
+		return xmlrpc_encode($this->getRepObject($props));
 	}
 
 	/**

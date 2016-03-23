@@ -14,8 +14,6 @@
 
 namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Types;
 
-use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException;
-
 abstract class BaseType{
 	/** @var  string $name Descriptive name of type */
 	public $name;
@@ -31,12 +29,7 @@ abstract class BaseType{
 	public function __construct($name, $value = null){
 		$this->name = $name;
 
-		if(!is_null($value)){
-			if(!$this->validateValue($value)){
-				throw new InvalidValueException($this);
-			}
-			$this->setValue($value);
-		}
+		$this->setValue($value);
 	}
 	/**
 	 * Gets the stored value.

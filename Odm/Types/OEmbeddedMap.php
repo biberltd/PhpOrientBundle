@@ -75,7 +75,7 @@ class OEmbeddedMap extends BaseType{
 			return true;
 		}
 		foreach($value as $key => $item){
-			if(!is_string($item) || !is_string($key)){
+			if(!is_string($key)){
 				throw new InvalidValueException($this);
 			}
 		}
