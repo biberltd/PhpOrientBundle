@@ -1,20 +1,21 @@
 <?php
 /**
- * @package     bodev-core-bundles/php-orient-bundle
- * @subpackage  Odm/Repository
- * @name        BaseRepository
+ * 2016 (C) BOdev Office | bodevoffice.com
  *
- * @author      Biber Ltd. (www.biberltd.com)
- * @author      Can Berkol
+ * @license MIT
  *
- * @copyright   Biber Ltd. (C) 2015
+ * Developed by Biber Ltd. (http://www.biberltd.com), a partner of BOdev Office (http://www.bodevoffice.com)
  *
- * @version     1.0.0
+ * Paid Customers ::
+ *
+ * Check http://team.bodevoffice.com for technical documentation or consult your representative.
+ *
+ * Contact support@bodevoffice.com for support requests.
  */
-
 namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Repository;
 
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Entity\BaseEntity;
+use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\ClassMustBeSetException;
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\UniqueRecordExpected;
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Responses\RepositoryResponse;
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Types\ORecordId;
@@ -22,23 +23,28 @@ use BiberLtd\Bundle\PhpOrientBundle\Services\PhpOrient;
 use PhpOrient\Protocols\Binary\Data\ID;
 use PhpOrient\Protocols\Binary\Data\Record;
 
-abstract class BaseRepository implements RepositoryInterface{
+abstract class BaseRepository implements RepositoryInterface {
 	protected $oService;
 	protected $class;
+	protected $controller;
+	private $fetchPlan = false;
+
 
 	/**
 	 * BaseRepository constructor.
 	 *
-	 * @param        $container
+	 * @param array  $internals
 	 * @param string $hostname
 	 * @param int    $port
 	 * @param string $token
 	 * @param string $dbUsername
 	 * @param string $dbPass
 	 */
-	public function __construct($container, $hostname = 'localhost', $port = 2424, $token = '', $dbUsername = '', $dbPass = ''){
-		$this->oService = new PhpOrient($container, $hostname, $port, $token);
+	public function __construct(array $internals, $hostname = 'localhost', $port = 2424, $token = '', $dbUsername = '', $dbPass = ''){
+		$this->oService = new PhpOrient($internals['container'], $hostname, $port, $token);
 		$this->oService->connect($dbUsername, $dbPass);
+		$this->controller = $internals['controller'];
+		unset($internals);
 	}
 
 	/**
@@ -55,6 +61,7 @@ abstract class BaseRepository implements RepositoryInterface{
 			$resultSet = $collection;
 		}
 		else{
+
 			foreach($collection as $anEntity){
 				/**
 				 * @var BaseEntity $anEntity
@@ -108,6 +115,10 @@ abstract class BaseRepository implements RepositoryInterface{
 		return new RepositoryResponse($resultSet);
 	}
 
+	public function setFetchPlan($fetchString='*:0')
+    {
+        $this->fetchPlan = $fetchString;
+    }
 	/**
 	 * @param array $collection
 	 *
@@ -222,7 +233,8 @@ abstract class BaseRepository implements RepositoryInterface{
 		$valuesStr = '';
 		foreach ($props as $aProperty){
 			$propName = $aProperty->getName();
-			$get = 'get'.ucfirst($propName);
+			//$get = 'get'.ucfirst($propName);
+            $get = $propName;
 			$value = $entity->$get();
 			if($propName == 'rid'){
 				continue;
@@ -359,12 +371,12 @@ abstract class BaseRepository implements RepositoryInterface{
 	}
 
 	/**
-	 * @param $rid
+	 * @param mixed $rid
 	 *
 	 * @return mixed
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\UniqueRecordExpected
 	 */
-	public function selectByRId($rid, $class){
+	public function selectByRid($rid, $class=null){
 		if($rid instanceof ID){
 			$rid = $rid;
 		}
@@ -386,11 +398,67 @@ abstract class BaseRepository implements RepositoryInterface{
 		if(count($response->result) <= 0){
 			return new RepositoryResponse(false);
 		}
-		$collection = [];
+		if($class!=null)
+        {
+            $collection = [];
 
-		foreach($response->result as $item){
-			$collection[] = new $class($item);
-		}
-		return new RepositoryResponse($collection[0]);
+            foreach($response->result as $item){
+                dump($item);die;
+                $collection[] = new $class($item);
+            }
+            return new RepositoryResponse($collection[0]);
+        }else{
+            return new RepositoryResponse($response->result[0]);
+        }
+
 	}
+
+	/**
+	 * @param array       $rids
+	 * @param string|null $class
+	 *
+	 * @return \BiberLtd\Bundle\PhpOrientBundle\Odm\Responses\RepositoryResponse
+	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\ClassMustBeSetException
+	 */
+	public function listByRids(array $rids, string $class = null){
+		if(count($rids) < 1){
+			return new RepositoryResponse([]);
+		}
+		$class = $class ?? ($this->entityClass ?? null);
+		if(is_null($class) || empty($class)){
+			throw new ClassMustBeSetException();
+		}
+		$convertdRids = [];
+		foreach($rids as $rid){
+			if($rid instanceof ID){
+				$rid = $rid;
+			}
+			elseif($rid instanceof ORecordId){
+				$rid = $rid->getValue();
+			}
+			else{
+				$oRid = new ORecordId($rid);
+				$rid = $oRid->getValue();
+			}
+			$convertdRids[] = '#'.$rid->cluster.':'.$rid->position;
+		}
+		$ridStr = implode(',', $convertdRids);
+		unset($rids, $convertdRids);
+
+		$q = 'SELECT FROM '.$this->class.' WHERE @rid IN ['.$ridStr.']';
+		$response = $this->query($q, 1);
+		if(count($response->result) <= 0){
+			return new RepositoryResponse([]);
+		}
+		$collection = [];
+		foreach($response->result as $item){
+			$collection[] = new $class($this->controller, $item);
+		}
+		return new RepositoryResponse($collection);
+	}
+
+	public function setClass($class)
+    {
+        $this->class = $class;
+    }
 }

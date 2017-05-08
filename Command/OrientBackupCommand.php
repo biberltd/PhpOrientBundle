@@ -1,4 +1,4 @@
-cd <?php
+<?php
 
 namespace BiberLtd\Bundle\PhpOrientBundle\Command;
 

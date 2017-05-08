@@ -290,7 +290,7 @@ class PhpOrient
 			$databaseCredentials = $this->orientParams['database'][$database];
 		}
 		else{
-			$databaseCredentials = $params;g
+			$databaseCredentials = $params;
 		}
 		$username = $databaseCredentials['username'];
 		$password = $databaseCredentials['password'];
