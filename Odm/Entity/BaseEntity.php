@@ -72,7 +72,7 @@ class BaseEntity{
 		else{
 			$this->convertRecordToOdmObject($record);
 		}
-		$this->versionHistory[] = $this->output('json');
+		//$this->versionHistory[] = $this->output('json');
 		$this->versionHash = md5(array_pop($this->versionHistory));
 	}
 
@@ -167,7 +167,6 @@ class BaseEntity{
 					$set = 'set'.ucfirst($propName);
 
 					if(isset($recordData[$propName])){
-					    dump($recordData[$propName]);
 						$this->$set($recordData[$propName]);
 					}
 				}
@@ -206,63 +205,129 @@ class BaseEntity{
         switch ($prefix) {
             case 'get':
                 $colType = 'BiberLtd\\Bundle\\PhpOrientBundle\\Odm\\Types\\' . $this->getColumnType($property);
-                if($this->getColumnType($property)=='OLink' && $this->ifHasLinkedClass($property))
+                $onrow=false;
+                switch ($this->getColumnType($property))
                 {
-
-                    $linkedObj = $this->getNameSpace().$this->getColumnOptions($property)['class'];
-
-                    $obj = new $linkedObj($this->controller);
-
-                    if($this->$property!=null)
-                    {
-
-                        if($this->$property->getValue() instanceof  ID)
+                    case 'OLink':
+                        $onrow=true;
+                    case 'OLinkList':
+                    case 'OLinkSet':
+                    case 'OLinkMap':
+                        if($this->ifHasLinkedClass($property))
                         {
-                            $repoClass = $this->createRepository($property);
-                            $response = $repoClass->selectByRid($this->$property->getValue());
-                            if($response->code==200)
-                                $obj = new $linkedObj($this->controller,$response->result);
+                            /*$linkedObj = $this->getNameSpace().$this->getColumnOptions($property)['class'];
+
+                            if($this->$property!=null && !$this->$property->getValue() instanceof $linkedObj)
+                            {
+                                $repoClass = $this->createRepository($property);
+                                $obj=[];
+                                $data = $onrow ? [$this->$property->getValue()] : $this->$property->getValue();
+
+                                foreach ($data as $item)
+                                {
+                                    if($item instanceof ID)
+                                    {
+                                        $response = $repoClass->selectByRid($item);
+                                        if($response->code==200)
+                                            $obj[] = new $linkedObj($this->controller,$response->result);
+                                    }
+                                }
+                                $obj = $onrow ? $obj[0] : $obj;
+                            }else{
+                                if(!$this->$property instanceof $linkedObj)
+                                $obj = new $linkedObj($this->controller);
+                                else
+                                    $obj = $this->$property;
+                            }
+
+                            return $obj;*/
+                            return $this->$property;
+                        }else{
+
+                            return $this->$property->getValue();
                         }
+                    default:
+                        return $this->$property->getValue();
 
-
-                    }
-
-                    return  $obj;
-
-                }else{
-                    return $this->$property;
                 }
-
-
+                //return $this->$property!=null ? $this->$property->getValue() : $this->$property;
 
                 break;
             case 'set':
+
+
                 //Always set the value if a parameter is passed
                 if (count($arguments) != 1) {
                     throw new \Exception("Setter for $name requires exactly one parameter.");
                 }
                 $colType = 'BiberLtd\\Bundle\\PhpOrientBundle\\Odm\\Types\\' . $this->getColumnType($property);
-               if($this->getColumnType($property)=='OLink' && $this->ifHasLinkedClass($property))
-                {
-                    if(!is_null($arguments[0]) && !is_string($arguments[0])) {
-                        if(!($arguments[0] instanceof ID))
-                            throw new InvalidRecordIdString();
-                    }
-                    if(is_string($arguments[0])) {
-                        $id = new ID($arguments[0]);
-                        $this->$property  = new $colType($id);
-                    }
-                    else if($arguments[0] instanceof ID) {
+                $onrow=false;
+
+                switch ($this->getColumnType($property)) {
+                    case 'OLink':
+                        $onrow = true;
+                    case 'OLinkList':
+                    case 'OLinkSet':
+                    case 'OLinkMap':
+
+                        if($this->ifHasLinkedClass($property)) {
+                            $linkedObj = $this->getNameSpace() . $this->getColumnOptions($property)['class'];
+
+                            $repoClass = $this->createRepository($property);
+
+                            $data = $onrow ? [$arguments[0]] : $arguments[0];
+                            $obj=[];
+
+                            foreach ($data as $item)
+                            {
+                                if($item!=null)
+                                {
+                                    $response = $repoClass->selectByRid($item);
+
+                                    if($response->code==200)
+                                        $obj[] = new $linkedObj($this->controller,$response->result);
+                                }else{
+                                    $obj[] = new $linkedObj($this->controller);
+                                }
+
+                            }
+
+                            $this->$property = $onrow ? $obj[0] : $obj;
+                        }else{
+                            if(isset($arguments[0]))
+                            {
+
+                                $data = $onrow ? [$arguments[0]]  : $arguments[0];
+                                $returnData=[];
+                                foreach ($data as $item)
+                                {
+
+                                    if(!is_null($item) && !is_string($item)) {
+                                        if(!($item instanceof ID))
+                                            throw new InvalidRecordIdString();
+                                    }
+                                    if(is_string($item)) {
+                                        $id = new ID($item);
+                                        $returnData[]  = $id;
+                                    }
+                                    else if($item instanceof ID) {
+                                        $returnData[]= $item;
+                                    }
+
+                                }
+                                $this->$property = $onrow ? new $colType($returnData[0]) : new $colType($returnData);
+
+                            }
+
+                        }
+                        break;
+                    default:
                         $this->$property = new $colType($arguments[0]);
-                    }
 
-                }else{
-
-                    $this->$property = new $colType($arguments[0]);
                 }
-
                 //Always return the value (Even on the set)
                 return $this->setVersionHistory();
+                break;
             default:
                 throw new \Exception("Property $name doesn't exist.");
                 break;
@@ -398,11 +463,13 @@ class BaseEntity{
 		}
 		foreach($this->props as $aProperty){
 			$propName = $aProperty->getName();
+
 			if(!is_null($props) && !in_array($propName, $props)){
 				continue;
 			}
+
 			if(!is_null($this->$propName)){
-				if(is_array($this->$propName->getValue())){
+				if(method_exists($this->$propName, 'getValue') && is_array($this->$propName->getValue())){
 					$collection = [];
 					foreach($this->$propName->getValue() as $anItem){
 						if($anItem instanceOf ID){
@@ -420,14 +487,14 @@ class BaseEntity{
 					}
 					$objRepresentation->$propName = $collection;
 				}
-				else if($this->$propName->getValue() instanceOf \DateTime){
+				else if(method_exists($this->$propName, 'getValue') && $this->$propName->getValue() instanceOf \DateTime){
 					$objRepresentation->$propName = $this->$propName->getValue()->format($dtFormat);
 				}
-				else if($this->$propName->getValue() instanceOf ID){
+				else if(method_exists($this->$propName, 'getValue') && $this->$propName->getValue() instanceOf ID){
 					$idObj = $this->$propName->getValue();
 					$objRepresentation->$propName = '#'.$idObj->cluster.':'.$idObj->position;
 				}
-				else{
+				elseif(method_exists($this->$propName, 'getValue')){
 					$objRepresentation->$propName = $this->$propName->getValue();
 				}
 			}
