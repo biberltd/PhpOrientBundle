@@ -26,13 +26,36 @@ class RepositoryResponse{
 	public $result;
 
 	/**
+	 * @var mixed
+	 */
+	public $execution;
+	/**
 	 * RepositoryResponse constructor.
 	 *
 	 * @param mixed $result
 	 * @param int   $code
 	 */
-	public function __construct($result, $code = 200){
+	public function __construct($result = null, $code = 200){
 		$this->code = $code;
+		$this->result = $result;
+		$this->execution = new \stdClass();
+		$this->execution->start = microtime(true);
+		$this->endExecution();
+	}
+
+	/**
+	 * @return $this
+	 */
+	public function endExecution(){
+		$this->execution->end = microtime(true);
+		$this->execution->duration = ($this->execution->end - $this->execution->start);
+		return $this;
+	}
+
+	/**
+	 * @param $result
+	 */
+	public function setResult($result){
 		$this->result = $result;
 	}
 }

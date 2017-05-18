@@ -26,7 +26,7 @@ class OEmbeddedList extends OrientCollection{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct(array $value = []){
+	public function __construct(array $value = null){
 		parent::__construct('OEmbeddedList', $value);
 	}
 
@@ -56,10 +56,16 @@ class OEmbeddedList extends OrientCollection{
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
 	public function validateValue($value){
+		if(is_null($value)){
+			$value = [];
+		}
 		if(!is_array($value)){
 			throw new InvalidValueException($this);
 		}
 		foreach($value as $item){
+			if(is_array($item)){
+				$item = (object) $item;
+			}
 			if(!is_object($item)){
 				throw new InvalidValueException($this);
 			}

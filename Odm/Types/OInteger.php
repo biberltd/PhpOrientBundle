@@ -26,7 +26,7 @@ class OInteger extends BaseType{
 	 *
 	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
 	 */
-	public function __construct($value){
+	public function __construct($value=null){
 		parent::__construct('OInteger', $value);
 	}
 
@@ -49,7 +49,7 @@ class OInteger extends BaseType{
 		}
 		return $this;
 	}
-	/*
+	/**
 	 * @param mixed $value
 	 *
 	 * @return bool
@@ -59,7 +59,7 @@ class OInteger extends BaseType{
 		if(is_numeric($value)){
 			$value = (int) $value;
 		}
-		if(!is_integer($value)){
+		if(!is_integer($value) && !is_null($value)){
 			throw new InvalidValueException($this);
 		}
 		return true;
