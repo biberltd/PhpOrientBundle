@@ -29,7 +29,6 @@ abstract class BaseRepository implements RepositoryInterface {
     protected $controller;
     private $fetchPlan = false;
 
-
     /**
      * BaseRepository constructor.
      *
