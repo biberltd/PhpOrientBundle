@@ -216,7 +216,6 @@ class BaseEntity{
                 {
                     case 'OLink':
                         $onrow = true;
-                        break;
                     case 'OLinkList':
                     case 'OLinkSet':
                     case 'OLinkMap':

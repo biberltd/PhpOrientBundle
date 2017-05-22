@@ -1,17 +1,4 @@
 <?php
-/**
- * 2016 (C) BOdev Office | bodevoffice.com
- *
- * @license MIT
- *
- * Developed by Biber Ltd. (http://www.biberltd.com), a partner of BOdev Office (http://www.bodevoffice.com)
- *
- * Paid Customers ::
- *
- * Check http://team.bodevoffice.com for technical documentation or consult your representative.
- *
- * Contact support@bodevoffice.com for support requests.
- */
 namespace BiberLtd\Bundle\PhpOrientBundle\Odm\Repository;
 
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Entity\BaseEntity;
@@ -31,10 +18,9 @@ abstract class BaseRepository implements RepositoryInterface {
 
     /**
      * BaseRepository constructor.
-     *
-     * @param array  $internals
+     * @param array $internals
      * @param string $hostname
-     * @param int    $port
+     * @param int $port
      * @param string $token
      * @param string $dbUsername
      * @param string $dbPass
