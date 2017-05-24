@@ -22,7 +22,6 @@ use Doctrine\ORM\Mapping\Column;
 use PhpOrient\Protocols\Binary\Data\ID as ID;
 use PhpOrient\Protocols\Binary\Data\Record as ORecord;
 use Doctrine\Common\Annotations\AnnotationReader as AnnotationReader;
-use BiberLtd\Bundle\PhpOrientBundle\Exceptions as Exeptions;
 use BiberLtd\Bundle\PhpOrientBundle\Odm\Repository\BaseRepository;
 
 class BaseEntity{
@@ -176,6 +175,13 @@ class BaseEntity{
         }
     }
 
+    /**
+     * @param $name
+     * @param $arguments
+     * @return BaseEntity
+     * @throws InvalidRecordIdString
+     * @throws \Exception
+     */
     public function __call($name, $arguments) {
 
         //Getting and setting with $this->property($optional);
@@ -211,7 +217,7 @@ class BaseEntity{
                 switch ($this->getColumnType($property))
                 {
                     case 'OLink':
-                        $onrow=true;
+                        $onrow = true;
                     case 'OLinkList':
                     case 'OLinkSet':
                     case 'OLinkMap':
@@ -337,6 +343,10 @@ class BaseEntity{
         }
     }
 
+    /**
+     * @param $property
+     * @return BaseRepository|__anonymous@11869
+     */
     private function createRepository($property)
     {
         $kernel = $this->controller->getApplication()->getKernel();

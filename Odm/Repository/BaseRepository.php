@@ -29,97 +29,95 @@ abstract class BaseRepository implements RepositoryInterface {
 	protected $controller;
 	private $fetchPlan = false;
 
+    /**
+     * BaseRepository constructor.
+     * @param array $internals
+     * @param string $hostname
+     * @param int $port
+     * @param string $token
+     * @param string $dbUsername
+     * @param string $dbPass
+     */
+    public function __construct(array $internals, $hostname = 'localhost', $port = 2424, $token = '', $dbUsername = '', $dbPass = ''){
+        $this->oService = new PhpOrient($internals['container'], $hostname, $port, $token);
+        $this->oService->connect($dbUsername, $dbPass);
+        $this->controller = $internals['controller'];
+        unset($internals);
+    }
 
-	/**
-	 * BaseRepository constructor.
-	 *
-	 * @param array  $internals
-	 * @param string $hostname
-	 * @param int    $port
-	 * @param string $token
-	 * @param string $dbUsername
-	 * @param string $dbPass
-	 */
-	public function __construct(array $internals, $hostname = 'localhost', $port = 2424, $token = '', $dbUsername = '', $dbPass = ''){
-		$this->oService = new PhpOrient($internals['container'], $hostname, $port, $token);
-		$this->oService->connect($dbUsername, $dbPass);
-		$this->controller = $internals['controller'];
-		unset($internals);
-	}
+    /**
+     * @param array $collection
+     * @param bool  $batch
+     *
+     * @return \BiberLtd\Bundle\PhpOrientBundle\Odm\Responses\RepositoryResponse
+     */
+    public final function insert(array $collection, bool $batch = false){
+        $resultSet = [];
+        if($batch){
+            $query = $this->prepareBatchInsertQuery($collection);
+            $insertedRecords = $this->oService->command($query);
+            $resultSet = $collection;
+        }
+        else{
 
-	/**
-	 * @param array $collection
-	 * @param bool  $batch
-	 *
-	 * @return \BiberLtd\Bundle\PhpOrientBundle\Odm\Responses\RepositoryResponse
-	 */
-	public final function insert(array $collection, bool $batch = false){
-		$resultSet = [];
-		if($batch){
-			$query = $this->prepareBatchInsertQuery($collection);
-			$insertedRecords = $this->oService->command($query);
-			$resultSet = $collection;
-		}
-		else{
-
-			foreach($collection as $anEntity){
-				/**
-				 * @var BaseEntity $anEntity
-				 */
-				$query = $this->prepareInsertQuery($anEntity);
-				/**
-				 * @var Record $insertedRecord
-				 */
-				$insertedRecord = $this->oService->command($query);
-				$anEntity->setRid($insertedRecord->getRid());
-				$resultSet[] = $anEntity;
-			}
-		}
+            foreach($collection as $anEntity){
+                /**
+                 * @var BaseEntity $anEntity
+                 */
+                $query = $this->prepareInsertQuery($anEntity);
+                /**
+                 * @var Record $insertedRecord
+                 */
+                $insertedRecord = $this->oService->command($query);
+                $anEntity->setRid($insertedRecord->getRid());
+                $resultSet[] = $anEntity;
+            }
+        }
 
 
-		return new RepositoryResponse($resultSet);
-	}
+        return new RepositoryResponse($resultSet);
+    }
 
-	/**
-	 * @param array $collection
-	 *
-	 * @return array
-	 */
-	public function update(array $collection){
-		$resultSet = [];
-		foreach($collection as $anEntity){
-			/**
-			 * @var BaseEntity $anEntity
-			 */
-			if(!$anEntity->isModified()){
-				continue;
-			}
+    /**
+     * @param array $collection
+     *
+     * @return array
+     */
+    public function update(array $collection){
+        $resultSet = [];
+        foreach($collection as $anEntity){
+            /**
+             * @var BaseEntity $anEntity
+             */
+            if(!$anEntity->isModified()){
+                continue;
+            }
             $query = $this->prepareUpdateQuery($anEntity);
-			$result = $this->oService->command($query);
-			if($result instanceof Record){
-				$resultSet[] = $anEntity;
-			}
-		}
-		return new RepositoryResponse($resultSet);
-	}
+            $result = $this->oService->command($query);
+            if($result instanceof Record){
+                $resultSet[] = $anEntity;
+            }
+        }
+        return new RepositoryResponse($resultSet);
+    }
 
-	/**
-	 * @param        $query
-	 * @param int    $limit
-	 * @param string $fetchPlan
-	 *
-	 * @return mixed
-	 */
-	public function query($query, $limit = 20, $fetchPlan = '*:0'){
+    /**
+     * @param        $query
+     * @param int    $limit
+     * @param string $fetchPlan
+     *
+     * @return mixed
+     */
+    public function query($query, $limit = 20, $fetchPlan = '*:0'){
 
-		$resultSet = $this->oService->query($query, $limit, $fetchPlan);
-		return new RepositoryResponse($resultSet);
-	}
+        $resultSet = $this->oService->query($query, $limit, $fetchPlan);
+        return new RepositoryResponse($resultSet);
+    }
 
     public function queryAsync($query, $fetchPlan = '*:0'){
 
-	    $return = new Record();
-	    $myFunction=function(Record $record) use ($return){
+        $return = new Record();
+        $myFunction=function(Record $record) use ($return){
             $return=$record;
         };
         $resultSet =$this->oService->queryAsync( $query, [ 'fetch_plan' => $fetchPlan, '_callback' => $myFunction ]);
@@ -127,40 +125,40 @@ abstract class BaseRepository implements RepositoryInterface {
         return new RepositoryResponse($return);
     }
 
-	public function setFetchPlan($fetchString='*:0')
+    public function setFetchPlan($fetchString='*:0')
     {
         $this->fetchPlan = $fetchString;
     }
-	/**
-	 * @param array $collection
-	 *
-	 * @return array
-	 */
-	public function delete(array $collection){
-		$resultSet = [];
-		foreach($collection as $anEntity){
-			/**
-			 * @var BaseEntity $anEntity
-			 */
-			$query = 'DELETE FROM '.$this->class.' WHERE @rid = '.$anEntity->getRid('string');
-			$result = (bool) $this->oService->command($query);
-			if($result){
-				$resultSet[] = $anEntity;
-			}
-		}
-		return new RepositoryResponse($resultSet);
-	}
+    /**
+     * @param array $collection
+     *
+     * @return array
+     */
+    public function delete(array $collection){
+        $resultSet = [];
+        foreach($collection as $anEntity){
+            /**
+             * @var BaseEntity $anEntity
+             */
+            $query = 'DELETE FROM '.$this->class.' WHERE @rid = '.$anEntity->getRid('string');
+            $result = (bool) $this->oService->command($query);
+            if($result){
+                $resultSet[] = $anEntity;
+            }
+        }
+        return new RepositoryResponse($resultSet);
+    }
 
-	/**
-	 * @param array $collection
-	 *
-	 * @return string
-	 */
-	private function prepareBatchInsertQuery(array $collection){
-		$props = $collection[0]->getProps();
-		$query = 'INSERT INTO '.$this->class.' ';
-		$propStr = '';
-		$valueCollectionStr = '';
+    /**
+     * @param array $collection
+     *
+     * @return string
+     */
+    private function prepareBatchInsertQuery(array $collection){
+        $props = $collection[0]->getProps();
+        $query = 'INSERT INTO '.$this->class.' ';
+        $propStr = '';
+        $valueCollectionStr = '';
 
 		foreach($props as $aProperty){
 			$propName = $aProperty->getName();
@@ -317,27 +315,19 @@ abstract class BaseRepository implements RepositoryInterface {
 		$props = $entity->getProps();
 		$query = 'UPDATE '.$this->class.' SET ';
 		$propStr = '';
-		$count = 0;
 		foreach ($props as $aProperty){
-		    $count++;
 			$propName = $aProperty->getName();
 			$get = 'get'.ucfirst($propName);
-            $value = $entity->$get();
-            if($propName == 'rid'){
+			$value = $entity->$get();
+			if($propName == 'rid'){
 				continue;
 			}
 			if(is_null($value) || empty($value)){
 				continue;
 			}
-
-            $colDef = $entity->getColumnDefinition($propName);
-            $options = $colDef->options;
-            if(isset($options) && isset($options['readOnly']) && $options['readOnly'] === true){
-                continue;
-            }
-
-            $valuesStr = '';
-            $propStr .= $propName.' = ';
+			$propStr .= $propName.' = ';
+			$colDef = $entity->getColumnDefinition($propName);
+			$valuesStr = '';
 			switch(strtolower($colDef->type)){
 				case 'obinary':
 					/**
@@ -359,8 +349,9 @@ abstract class BaseRepository implements RepositoryInterface {
 				case 'olong':
 					$valuesStr .= $entity->$get();
 					break;
-                case 'oembeddedlist':
-                case 'oembedded':
+				case 'oembedded':
+				case 'oembeddedlist':
+				case 'oembeddedmap':
 				case 'oembeddedmap':
 					$valuesStr .= json_encode($entity->$get());
 					break;
@@ -385,7 +376,7 @@ abstract class BaseRepository implements RepositoryInterface {
 			$propStr .= $valuesStr.', ';
 		}
 		$propStr = rtrim($propStr, ', ');
-		$query .= $propStr.' RETURN AFTER'.' WHERE @rid = '.$entity->getRecordId('string');
+		$query .= $propStr.' WHERE @rid = '.$entity->getRecordId('string');
 		return $query;
 	}
 

@@ -18,58 +18,58 @@ use BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException;
 
 class OEmbeddedList extends OrientCollection{
 
-	/** @var array $value */
-	protected $value;
+    /** @var array $value */
+    protected $value;
 
-	/**
-	 * @param array $value
-	 *
-	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
-	 */
-	public function __construct(array $value = null){
-		parent::__construct('OEmbeddedList', $value);
-	}
+    /**
+     * @param array $value
+     *
+     * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
+     */
+    public function __construct(array $value = null){
+        parent::__construct('OEmbeddedList', $value);
+    }
 
-	/**
-	 * @return array
-	 */
-	public function getValue(){
-		return $this->value;
-	}
+    /**
+     * @return array
+     */
+    public function getValue(){
+        return $this->value;
+    }
 
-	/**
-	 * @param array $value
-	 *
-	 * @return $this
-	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
-	 */
-	public function setValue($value){
-		if($this->validateValue($value)){
-			$this->value = $value;
-		}
-		return $this;
-	}
-	/*
-	 * @param mixed $value
-	 *
-	 * @return bool
-	 * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
-	 */
-	public function validateValue($value){
-		if(is_null($value)){
-			$value = [];
-		}
-		if(!is_array($value)){
-			throw new InvalidValueException($this);
-		}
-		foreach($value as $item){
-			if(is_array($item)){
-				$item = (object) $item;
-			}
-			if(!is_object($item)){
-				throw new InvalidValueException($this);
-			}
-		}
-		return true;
-	}
+    /**
+     * @param array $value
+     *
+     * @return $this
+     * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
+     */
+    public function setValue($value){
+        if($this->validateValue($value)){
+            $this->value = $value;
+        }
+        return $this;
+    }
+    /*
+     * @param mixed $value
+     *
+     * @return bool
+     * @throws \BiberLtd\Bundle\PhpOrientBundle\Odm\Exceptions\InvalidValueException
+     */
+    public function validateValue($value){
+        if(is_null($value)){
+            $value = [];
+        }
+        if(!is_array($value)){
+            throw new InvalidValueException($this);
+        }
+        foreach($value as $item){
+            if(is_array($item)){
+                $item = (object) $item;
+            }
+            if(!is_object($item)){
+                throw new InvalidValueException($this);
+            }
+        }
+        return true;
+    }
 }
