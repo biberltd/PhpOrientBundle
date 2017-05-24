@@ -94,9 +94,9 @@ abstract class BaseRepository implements RepositoryInterface {
 			if(!$anEntity->isModified()){
 				continue;
 			}
-			$query = $this->prepareUpdateQuery($anEntity);
+            $query = $this->prepareUpdateQuery($anEntity);
 			$result = $this->oService->command($query);
-			if(is_array($result) && $result[0] == 1){
+			if($result instanceof Record){
 				$resultSet[] = $anEntity;
 			}
 		}
@@ -317,19 +317,27 @@ abstract class BaseRepository implements RepositoryInterface {
 		$props = $entity->getProps();
 		$query = 'UPDATE '.$this->class.' SET ';
 		$propStr = '';
+		$count = 0;
 		foreach ($props as $aProperty){
+		    $count++;
 			$propName = $aProperty->getName();
 			$get = 'get'.ucfirst($propName);
-			$value = $entity->$get();
-			if($propName == 'rid'){
+            $value = $entity->$get();
+            if($propName == 'rid'){
 				continue;
 			}
 			if(is_null($value) || empty($value)){
 				continue;
 			}
-			$propStr .= $propName.' = ';
-			$colDef = $entity->getColumnDefinition($propName);
-			$valuesStr = '';
+
+            $colDef = $entity->getColumnDefinition($propName);
+            $options = $colDef->options;
+            if(isset($options) && isset($options['readOnly']) && $options['readOnly'] === true){
+                continue;
+            }
+
+            $valuesStr = '';
+            $propStr .= $propName.' = ';
 			switch(strtolower($colDef->type)){
 				case 'obinary':
 					/**
@@ -351,9 +359,8 @@ abstract class BaseRepository implements RepositoryInterface {
 				case 'olong':
 					$valuesStr .= $entity->$get();
 					break;
-				case 'oembedded':
-				case 'oembeddedlist':
-				case 'oembeddedmap':
+                case 'oembeddedlist':
+                case 'oembedded':
 				case 'oembeddedmap':
 					$valuesStr .= json_encode($entity->$get());
 					break;
@@ -378,7 +385,7 @@ abstract class BaseRepository implements RepositoryInterface {
 			$propStr .= $valuesStr.', ';
 		}
 		$propStr = rtrim($propStr, ', ');
-		$query .= $propStr.' WHERE @rid = '.$entity->getRecordId('string');
+		$query .= $propStr.' RETURN AFTER'.' WHERE @rid = '.$entity->getRecordId('string');
 		return $query;
 	}
 
